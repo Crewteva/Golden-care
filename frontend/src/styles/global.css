@@ -70,7 +70,7 @@ body {
     radial-gradient(1200px 600px at 100% -10%, rgba(227, 194, 125, 0.18), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, rgba(26, 67, 60, 0.07), transparent 60%),
     var(--paper);
-  background-attachment: fixed;
+  background-repeat: no-repeat;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -295,6 +295,7 @@ button, input, select, textarea {
 .field {
   display: grid;
   gap: 6px;
+  align-content: start;
 }
 .field-label {
   font-family: var(--font-display);

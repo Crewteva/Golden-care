@@ -32,6 +32,7 @@ services:
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       MFA_ISSUER: ${MFA_ISSUER:-Golden Care Clinics}
       API_DOCS: ${API_DOCS:-false}
+      DEV_LOGIN: "on"
 
   # The React site (nginx). It is the public entry point and forwards /api to the backend.
   web:
