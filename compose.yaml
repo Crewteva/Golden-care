@@ -41,6 +41,10 @@ services:
       - backend
     expose:
       - "8080"
+    networks:
+      default:
+        aliases:
+          - frontend
 
 volumes:
   db-data:
