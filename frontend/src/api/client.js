@@ -29,9 +29,13 @@ export async function api(path, { method = 'GET', body, query } = {}) {
   const headers = { Accept: 'application/json' }
   const init = { method, headers, credentials: 'same-origin' }
   if (method !== 'GET') {
-    headers['Content-Type'] = 'application/json'
     headers['X-Requested-With'] = 'GoldenCare'
-    init.body = JSON.stringify(body ?? {})
+    if (body instanceof FormData) {
+      init.body = body // the browser sets the multipart boundary
+    } else {
+      headers['Content-Type'] = 'application/json'
+      init.body = JSON.stringify(body ?? {})
+    }
   }
 
   let response

@@ -31,7 +31,20 @@ export const ACTIONS = {
   'password_reset.resolved': { ar: 'معالجة طلب استعادة', en: 'Reset request handled', tone: 'good', icon: 'key' },
   'password_reset.dismissed': { ar: 'رفض طلب استعادة', en: 'Reset request dismissed', icon: 'inbox' },
   'patient.registered': { ar: 'تسجيل مريض جديد', en: 'Patient registered', tone: 'good', icon: 'heart' },
-  'patient.profile_updated': { ar: 'تعديل ملف مريض', en: 'Patient profile updated', icon: 'edit' },
+  'patient.profile_updated': { ar: 'تعديل المريض لبياناته', en: 'Patient updated own profile', icon: 'edit' },
+  'patient.created': { ar: 'فتح ملف مريض', en: 'Patient file opened', tone: 'good', icon: 'userPlus' },
+  'patient.updated': { ar: 'تعديل بيانات مريض', en: 'Patient details edited', icon: 'edit' },
+  'patient.alert_added': { ar: 'إضافة تنبيه طبي', en: 'Medical alert added', tone: 'warn', icon: 'alert' },
+  'patient.alert_removed': { ar: 'إزالة تنبيه طبي', en: 'Medical alert removed', icon: 'alert' },
+  'patient.family_linked': { ar: 'ربط فرد من العائلة', en: 'Family member linked', icon: 'users' },
+  'patient.family_unlinked': { ar: 'فك ربط فرد من العائلة', en: 'Family link removed', icon: 'users' },
+  'patient.portal_access_given': { ar: 'منح حساب على البوابة', en: 'Portal account given', tone: 'good', icon: 'key' },
+  'patient_file.uploaded': { ar: 'رفع مستند', en: 'Document uploaded', icon: 'inbox' },
+  'patient_file.opened': { ar: 'فتح مستند', en: 'Document opened', icon: 'eye' },
+  'patient_file.opened_by_patient': { ar: 'فتح المريض مستندًا', en: 'Patient opened a document', icon: 'eye' },
+  'patient_file.reviewed': { ar: 'مراجعة مستند (داخلي)', en: 'Document reviewed (internal)', icon: 'check' },
+  'patient_file.released': { ar: 'إتاحة مستند للمريض', en: 'Document released to patient', tone: 'good', icon: 'sparkle' },
+  'patient_file.voided': { ar: 'إلغاء مستند', en: 'Document voided', tone: 'warn', icon: 'x' },
   'system.first_admin': { ar: 'إنشاء أول مدير نظام', en: 'First admin created', icon: 'shield' },
 }
 
@@ -42,7 +55,8 @@ export const CATEGORIES = [
   { value: 'delegation', ar: 'التغطية المؤقتة', en: 'Temporary cover' },
   { value: 'branch', ar: 'الفروع', en: 'Branches' },
   { value: 'password_reset', ar: 'طلبات الاستعادة', en: 'Reset requests' },
-  { value: 'patient', ar: 'المرضى', en: 'Patients' },
+  { value: 'patient', ar: 'ملفات المرضى', en: 'Patient files' },
+  { value: 'patient_file', ar: 'المستندات الطبية', en: 'Patient documents' },
 ]
 
 export function actionMeta(action) {

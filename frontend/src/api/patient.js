@@ -5,6 +5,9 @@ export const patientApi = {
   home: () => api('/patient/home'),
   profile: () => api('/patient/profile'),
   updateProfile: (body) => api('/patient/profile', { method: 'PUT', body }),
+  files: () => api('/patient/files'),
+  fileUrl: (id) => `/api/patient/files/${id}/download`,
+  family: () => api('/patient/family'),
 }
 
 export const auditorApi = {

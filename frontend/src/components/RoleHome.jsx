@@ -91,7 +91,7 @@ export function CoverCard({ cover }) {
 }
 
 // Home page for roles whose features come in later phases: welcome, cover, and what's coming.
-export default function RoleHome({ upcoming = [] }) {
+export default function RoleHome({ upcoming = [], children }) {
   const { me } = useAuth()
   const { tx, lang } = useI18n()
   const { data } = useAsync(() => workspaceApi.home(slugFor(me.active_role)), [me.active_role, me.active_branch_id])
@@ -99,6 +99,7 @@ export default function RoleHome({ upcoming = [] }) {
   return (
     <div className="page reveal">
       <Welcome />
+      {typeof children === 'function' ? children(data) : children}
       <CoverCard cover={data?.cover} />
       {upcoming.length > 0 && (
         <section className="card">

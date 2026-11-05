@@ -1,6 +1,8 @@
 import RoleHome from '../../../components/RoleHome'
+import HomeStats from '../../../components/patients/HomeStats'
+import QuickSearch from '../../../components/patients/QuickSearch'
 
-// What this workspace will hold, from the project to-do list. Replace with real pages as they're built.
+// Still to come in this workspace (from the project to-do list).
 const UPCOMING = [
   { icon: 'inbox', ar: 'صندوق طلبات الموقع والإعلانات', en: "Website & ad requests inbox", note: { ar: 'مع مصدر كل طلب', en: "With the source of each request" } },
   { icon: 'clock', ar: 'سرعة الرد', en: "Response time tracking", note: { ar: 'مؤقت لكل طلب', en: "A timer on every request" } },
@@ -9,5 +11,14 @@ const UPCOMING = [
 ]
 
 export default function Home() {
-  return <RoleHome upcoming={UPCOMING} />
+  return (
+    <RoleHome upcoming={UPCOMING}>
+      {(data) => (
+        <>
+          <QuickSearch />
+          <HomeStats data={data} />
+        </>
+      )}
+    </RoleHome>
+  )
 }

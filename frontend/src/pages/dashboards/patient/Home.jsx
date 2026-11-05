@@ -10,9 +10,9 @@ import { fmtDate, fmtPhone } from '../../../lib/format'
 const COMING = [
   { icon: 'calendar', ar: 'حجز المواعيد أونلاين', en: 'Book appointments online', note: { ar: 'من المواعيد المتاحة فعليًا لكل طبيب', en: "From each doctor's real availability" } },
   { icon: 'clock', ar: 'مواعيدي القادمة والسابقة', en: 'My upcoming & past visits', note: { ar: 'مع إمكانية الإلغاء والتقييم', en: 'Cancel or rate a visit' } },
-  { icon: 'fileSearch', ar: 'الوصفات والنتائج', en: 'Prescriptions & results', note: { ar: 'بعد مراجعة الطبيب واعتماده', en: 'Once your doctor reviews and releases them' } },
+  { icon: 'fileSearch', ar: 'الوصفات الطبية', en: 'Prescriptions', note: { ar: 'مطبوعة ومتاحة في حسابك', en: 'Printable, in your account' } },
   { icon: 'cash', ar: 'الفواتير والدفع أونلاين', en: 'Invoices & online payment', note: { ar: 'بطاقة أو محفظة', en: 'Card or wallet' } },
-  { icon: 'users', ar: 'حسابات العائلة', en: 'Family accounts', note: { ar: 'إدارة مواعيد أبنائك', en: "Manage your children's visits" } },
+  { icon: 'users', ar: 'مواعيد العائلة', en: 'Family appointments', note: { ar: 'احجز لأبنائك من حسابك', en: 'Book for your children from your account' } },
   { icon: 'headphones', ar: 'الشكاوى والطلبات', en: 'Complaints & requests', note: { ar: 'متابعة حتى الحل', en: 'Followed until resolved' } },
 ]
 
