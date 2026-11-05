@@ -674,6 +674,13 @@ button, input, select, textarea {
 .page {
   display: grid;
   gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+.page > *,
+.split > *,
+.grid-2 > *,
+.grid-3 > * {
+  min-width: 0;
 }
 .page-header {
   display: flex;
