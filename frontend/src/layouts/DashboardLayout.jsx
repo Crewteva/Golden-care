@@ -6,7 +6,7 @@ import { Avatar, LangToggle } from '../components/ui'
 import { useAuth } from '../auth/AuthContext'
 import { roleName, slugFor } from '../auth/roles'
 import { useI18n } from '../i18n/I18nContext'
-import { fmtLongDate } from '../lib/format'
+import { fmtLongDate, fmtPhone } from '../lib/format'
 
 // Frame for every role's dashboard: dark sidebar with that role's pages, top bar, content.
 export default function DashboardLayout({ config }) {
@@ -40,7 +40,7 @@ export default function DashboardLayout({ config }) {
         <div className="sidebar-role">
           <span className="lbl">{tx('تعمل الآن بصفة', 'Working as')}</span>
           <strong>{roleName(config.role, lang)}</strong>
-          <small>{branch}</small>
+          {config.role !== 'patient' && <small>{branch}</small>}
           {active?.delegated && (
             <small>
               {tx('تغطية مؤقتة عن', 'Covering for')} {pick(active, 'from_name')}
@@ -80,7 +80,7 @@ export default function DashboardLayout({ config }) {
             <Avatar name={name} />
             <div className="who">
               <strong>{name}</strong>
-              <small className="ltr">{me.user.email || me.user.phone}</small>
+              <small className="ltr" style={{ textAlign: 'start' }}>{me.user.email || fmtPhone(me.user.phone)}</small>
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function DashboardLayout({ config }) {
           </button>
           <div className="crumbs">
             <strong>{roleName(config.role, lang)}</strong>
-            <span className="branch">· {branch}</span>
+            {config.role !== 'patient' && <span className="branch">· {branch}</span>}
           </div>
           <div className="end">
             <span className="today">{fmtLongDate(null, locale)}</span>

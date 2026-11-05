@@ -33,10 +33,12 @@ export function Welcome({ children }) {
           <Icon name={ROLES[role]?.icon || 'user'} size={15} />
           {roleName(role, lang)}
         </span>
-        <span>
-          <Icon name="building" size={15} />
-          {branch}
-        </span>
+        {role !== 'patient' && (
+          <span>
+            <Icon name="building" size={15} />
+            {branch}
+          </span>
+        )}
         {me.user.previous_login_at && (
           <span>
             <Icon name="clock" size={15} />
