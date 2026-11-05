@@ -306,10 +306,13 @@ button.chip:hover {
   font-weight: 500;
   display: table-cell;
 }
-.week-grid tbody th > span:last-child {
-  display: inline-block;
-  vertical-align: top;
-  margin-inline-start: 8px;
+.wk-doc {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.wk-doc .dot-color {
+  margin-top: 5px;
 }
 .week-grid tbody th small {
   display: block;

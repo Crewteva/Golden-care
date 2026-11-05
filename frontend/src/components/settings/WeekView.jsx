@@ -94,11 +94,13 @@ export default function WeekView({ selfOnly = false }) {
                 {doctors.map((doc) => (
                   <tr key={doc.id}>
                     <th scope="row">
-                      <span className="dot-color" style={{ background: doc.color || doc.specialty_color || 'var(--ink-300)' }} />
-                      <span>
-                        {pick(doc, 'full_name')}
-                        <small>{pick(doc, 'specialty_name') || pick(doc, 'title')}</small>
-                      </span>
+                      <div className="wk-doc">
+                        <span className="dot-color" style={{ background: doc.color || doc.specialty_color || 'var(--ink-300)' }} />
+                        <span>
+                          {pick(doc, 'full_name')}
+                          <small>{pick(doc, 'specialty_name') || pick(doc, 'title')}</small>
+                        </span>
+                      </div>
                     </th>
                     {doc.days.map((cell) => (
                       <td key={cell.date} className={cell.date === todayIso ? 'today' : ''} data-label={DAY_SHORT[lang][new Date(`${cell.date}T12:00`).getDay()]}>
