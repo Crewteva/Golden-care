@@ -50,7 +50,7 @@ export default function Doctors() {
                 </div>
                 <div className="week-dots" aria-label={tx('أيام العمل', 'Working days')}>
                   {WEEK_ORDER.map((wd) => (
-                    <span key={wd} className={days.includes(wd) ? 'on' : ''} title={DAY_SHORT[lang][wd]}>{DAY_SHORT[lang][wd].slice(0, lang === 'ar' ? 3 : 2)}</span>
+                    <span key={wd} className={days.includes(wd) ? 'on' : ''} title={DAY_SHORT[lang][wd]}>{DAY_SHORT[lang][wd]}</span>
                   ))}
                 </div>
                 <div className="row-between muted" style={{ fontSize: '.84rem' }}>

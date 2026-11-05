@@ -105,7 +105,9 @@ button.chip:hover {
 }
 .week-dots span {
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
+  white-space: nowrap;
+  overflow: hidden;
   padding: 5px 0;
   border-radius: 8px;
   background: var(--paper);
@@ -228,6 +230,7 @@ button.chip:hover {
   margin: 0;
   display: grid;
   gap: 8px;
+  align-content: start;
 }
 .service-group legend {
   display: flex;
