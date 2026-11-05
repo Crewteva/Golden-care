@@ -1,0 +1,45 @@
+# Golden Care OS: database + Python API + React frontend.
+# Settings come from environment variables; see backend/README.md for the full list.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: goldencare
+      POSTGRES_USER: goldencare
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-goldencare}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goldencare -d goldencare"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://goldencare:${POSTGRES_PASSWORD:-goldencare}@db:5432/goldencare
+      APP_TIMEZONE: ${APP_TIMEZONE:-Africa/Cairo}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@goldencare.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      MFA_ISSUER: ${MFA_ISSUER:-Golden Care Clinics}
+      API_DOCS: ${API_DOCS:-false}
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${PORT:-8080}:80"
+
+volumes:
+  db-data:

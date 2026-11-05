@@ -1,0 +1,50 @@
+// How each activity-log action reads in the interface.
+export const ACTIONS = {
+  'auth.login': { ar: 'تسجيل دخول', en: 'Signed in', tone: 'good', icon: 'logIn' },
+  'auth.logout': { ar: 'تسجيل خروج', en: 'Signed out', icon: 'logOut' },
+  'auth.logout_others': { ar: 'إنهاء الجلسات الأخرى', en: 'Signed out other devices', icon: 'monitor' },
+  'auth.login_failed': { ar: 'محاولة دخول فاشلة', en: 'Failed sign-in', tone: 'warn', icon: 'alert' },
+  'auth.login_blocked': { ar: 'دخول مرفوض', en: 'Sign-in refused', tone: 'warn', icon: 'lock' },
+  'auth.locked': { ar: 'قفل الحساب مؤقتًا', en: 'Account locked', tone: 'warn', icon: 'lock' },
+  'auth.mfa_enabled': { ar: 'تفعيل التحقق بخطوتين', en: '2-step verification turned on', tone: 'good', icon: 'smartphone' },
+  'auth.mfa_disabled': { ar: 'إيقاف التحقق بخطوتين', en: '2-step verification turned off', tone: 'warn', icon: 'smartphone' },
+  'auth.mfa_passed': { ar: 'تحقق بخطوتين ناجح', en: '2-step check passed', icon: 'smartphone' },
+  'auth.mfa_failed': { ar: 'رمز تحقق خاطئ', en: 'Wrong 2-step code', tone: 'warn', icon: 'smartphone' },
+  'auth.password_changed': { ar: 'تغيير كلمة المرور', en: 'Password changed', icon: 'key' },
+  'auth.role_switched': { ar: 'تبديل الدور', en: 'Switched role', icon: 'swap' },
+  'auth.reset_requested': { ar: 'طلب استعادة كلمة المرور', en: 'Password reset requested', icon: 'inbox' },
+  'user.created': { ar: 'إنشاء حساب موظف', en: 'Staff account created', tone: 'good', icon: 'userPlus' },
+  'user.updated': { ar: 'تعديل بيانات موظف', en: 'Staff details edited', icon: 'edit' },
+  'user.roles_changed': { ar: 'تغيير أدوار موظف', en: 'Staff roles changed', icon: 'shield' },
+  'user.deactivated': { ar: 'إيقاف حساب', en: 'Account deactivated', tone: 'warn', icon: 'power' },
+  'user.activated': { ar: 'إعادة تفعيل حساب', en: 'Account reactivated', tone: 'good', icon: 'power' },
+  'user.unlocked': { ar: 'فك قفل حساب', en: 'Account unlocked', icon: 'unlock' },
+  'user.password_reset': { ar: 'إعادة تعيين كلمة المرور', en: 'Password reset by admin', icon: 'key' },
+  'user.mfa_reset': { ar: 'إعادة ضبط التحقق بخطوتين', en: '2-step verification reset', tone: 'warn', icon: 'smartphone' },
+  'user.session_ended': { ar: 'إنهاء جلسة', en: 'Session ended by admin', icon: 'monitor' },
+  'role.updated': { ar: 'تعديل دور', en: 'Role updated', icon: 'shield' },
+  'role.permissions_changed': { ar: 'تعديل صلاحيات دور', en: 'Role permissions changed', icon: 'shield' },
+  'branch.created': { ar: 'إضافة فرع', en: 'Branch added', tone: 'good', icon: 'building' },
+  'branch.updated': { ar: 'تعديل فرع', en: 'Branch edited', icon: 'building' },
+  'delegation.created': { ar: 'تغطية مؤقتة جديدة', en: 'Temporary cover created', icon: 'swap' },
+  'delegation.revoked': { ar: 'إلغاء تغطية مؤقتة', en: 'Temporary cover revoked', tone: 'warn', icon: 'swap' },
+  'password_reset.resolved': { ar: 'معالجة طلب استعادة', en: 'Reset request handled', tone: 'good', icon: 'key' },
+  'password_reset.dismissed': { ar: 'رفض طلب استعادة', en: 'Reset request dismissed', icon: 'inbox' },
+  'patient.registered': { ar: 'تسجيل مريض جديد', en: 'Patient registered', tone: 'good', icon: 'heart' },
+  'patient.profile_updated': { ar: 'تعديل ملف مريض', en: 'Patient profile updated', icon: 'edit' },
+  'system.first_admin': { ar: 'إنشاء أول مدير نظام', en: 'First admin created', icon: 'shield' },
+}
+
+export const CATEGORIES = [
+  { value: 'auth', ar: 'الدخول والأمان', en: 'Sign-in & security' },
+  { value: 'user', ar: 'حسابات الموظفين', en: 'Staff accounts' },
+  { value: 'role', ar: 'الأدوار والصلاحيات', en: 'Roles & permissions' },
+  { value: 'delegation', ar: 'التغطية المؤقتة', en: 'Temporary cover' },
+  { value: 'branch', ar: 'الفروع', en: 'Branches' },
+  { value: 'password_reset', ar: 'طلبات الاستعادة', en: 'Reset requests' },
+  { value: 'patient', ar: 'المرضى', en: 'Patients' },
+]
+
+export function actionMeta(action) {
+  return ACTIONS[action] || { ar: action, en: action, icon: 'activity' }
+}
