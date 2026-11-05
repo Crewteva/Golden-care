@@ -58,7 +58,8 @@ export function CoverCard({ cover }) {
         <h2>{tx('التغطية المؤقتة', 'Temporary cover')}</h2>
         <Icon name="swap" />
       </div>
-      <ul className="list card-body" style={{ paddingBlock: 4 }}>
+      <div className="card-body" style={{ paddingBlock: 4 }}>
+      <ul className="list">
         {cover.map((c) => {
           const now = Date.now()
           const started = new Date(c.starts_at).getTime() <= now
@@ -82,6 +83,7 @@ export function CoverCard({ cover }) {
           )
         })}
       </ul>
+      </div>
     </section>
   )
 }

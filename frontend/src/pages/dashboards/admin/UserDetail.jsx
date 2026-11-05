@@ -473,7 +473,8 @@ export default function UserDetail() {
                 <h2>{tx('التغطية المؤقتة', 'Temporary cover')}</h2>
                 <Link to="/dashboard/admin/cover" style={{ fontSize: '.86rem' }}>{tx('إدارة', 'Manage')}</Link>
               </div>
-              <ul className="list card-body" style={{ paddingBlock: 4 }}>
+              <div className="card-body" style={{ paddingBlock: 4 }}>
+              <ul className="list">
                 {data.cover.map((c) => (
                   <li key={c.id}>
                     <strong style={{ fontWeight: 500 }}>
@@ -486,6 +487,7 @@ export default function UserDetail() {
                   </li>
                 ))}
               </ul>
+              </div>
             </section>
           )}
         </div>
