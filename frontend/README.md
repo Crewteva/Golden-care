@@ -1,0 +1,39 @@
+# Golden Care OS — Frontend (React · Vite)
+
+Arabic-first (right-to-left) with a full English version. Built with Vite and served by nginx,
+which also forwards `/api` to the backend (`nginx.conf`).
+
+## Layout
+
+```
+src/
+  main.jsx, App.jsx    entry point and all page routes
+  api/                 functions that call the backend (auth.js, admin.js, patient.js)
+  auth/                signed-in user (AuthContext), page guards, roles & where each one goes
+  components/          shared UI: buttons, fields, modal, toasts, activity log, role home
+  layouts/             AuthLayout (sign-in screens), DashboardLayout (sidebar + top bar)
+  i18n/                language switch and shared Arabic/English text
+  lib/                 formatting, error messages, password rules, activity labels
+  styles/              design tokens and layouts
+  pages/
+    auth/              Login, Register (patients), ForgotPassword, TwoFactor, ChangePassword, ChooseRole
+    account/           "My account" (every role)
+    dashboards/<role>/ one folder per role; index.jsx lists its pages and sidebar entries
+```
+
+## Adding a page to a role's dashboard
+
+1. Create the page in `src/pages/dashboards/<role>/`.
+2. Add it to that folder's `index.jsx`: `{ path, icon, label: { ar, en }, element, permission? }`.
+3. Call the role's API from a file in `src/api/`.
+
+The sidebar and the route are created from that entry automatically. Use `?lang=en` on any link to
+open it in English.
+
+## Develop
+
+```bash
+npm install
+npm run dev     # http://localhost:5173, /api is proxied to http://localhost:8000
+npm run build
+```
