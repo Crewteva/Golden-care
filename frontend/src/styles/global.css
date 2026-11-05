@@ -737,6 +737,7 @@ button, input, select, textarea {
 .grid-2 {
   display: grid;
   gap: 20px;
+  align-items: start;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .grid-3 {
