@@ -1,0 +1,21 @@
+import Home from './Home'
+import Catalog from '../../../components/settings/Catalog'
+import Rooms from '../../../components/settings/Rooms'
+import Doctors from '../../../components/settings/Doctors'
+import DoctorSetup from '../../../components/settings/DoctorSetup'
+import LeaveHolidays from '../../../components/settings/LeaveHolidays'
+import WeekView from '../../../components/settings/WeekView'
+
+// Management (owner / general manager): the business side of the clinic.
+export default {
+  role: 'management',
+  pages: [
+    { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
+    { path: 'services', icon: 'clipboard', label: { ar: 'الخدمات والأسعار', en: 'Services & prices' }, element: <Catalog />, permission: 'settings.view' },
+    { path: 'doctors', icon: 'stethoscope', label: { ar: 'الأطباء والجداول', en: 'Doctors & schedules' }, element: <Doctors />, permission: 'settings.view' },
+    { path: 'doctors/:id', nav: false, element: <DoctorSetup />, permission: 'settings.view' },
+    { path: 'schedules', icon: 'clock', label: { ar: 'جدول الأسبوع', en: 'Week view' }, element: <WeekView />, permission: 'settings.view' },
+    { path: 'rooms', icon: 'building', label: { ar: 'الغرف', en: 'Rooms' }, element: <Rooms />, permission: 'settings.view' },
+    { path: 'leave', icon: 'calendar', label: { ar: 'الإجازات والعطلات', en: 'Leave & holidays' }, element: <LeaveHolidays />, permission: 'settings.view' },
+  ],
+}

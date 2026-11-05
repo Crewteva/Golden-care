@@ -1,7 +1,6 @@
 // One dashboard per role. Each folder exports { role, pages }, and App.jsx turns them into routes.
 import admin from './admin'
-import owner from './owner'
-import director from './director'
+import management from './management'
 import medical_director from './medical_director'
 import reception from './reception'
 import patient_relations from './patient_relations'
@@ -17,8 +16,7 @@ import patient from './patient'
 
 export const DASHBOARDS = [
   admin,
-  owner,
-  director,
+  management,
   medical_director,
   reception,
   patient_relations,

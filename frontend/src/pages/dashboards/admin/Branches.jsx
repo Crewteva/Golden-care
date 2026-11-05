@@ -10,12 +10,15 @@ import { useAuth } from '../../../auth/AuthContext'
 import { useI18n } from '../../../i18n/I18nContext'
 import { errorText, fieldErrors } from '../../../lib/errors'
 
-const EMPTY = { code: '', name_ar: '', name_en: '', address_ar: '', address_en: '', phone: '', is_active: true }
+const EMPTY = { code: '', name_ar: '', name_en: '', address_ar: '', address_en: '', phone: '', whatsapp: '', email: '', hours_ar: '', hours_en: '', is_active: true }
+const TEXT_FIELDS = ['address_ar', 'address_en', 'phone', 'whatsapp', 'email', 'hours_ar', 'hours_en']
 
 function BranchForm({ branch, onClose, onSaved }) {
   const { t, tx } = useI18n()
   const toast = useToast()
-  const [form, setForm] = useState(branch ? { ...EMPTY, ...branch, address_ar: branch.address_ar || '', address_en: branch.address_en || '', phone: branch.phone || '' } : EMPTY)
+  const [form, setForm] = useState(branch
+    ? { ...EMPTY, ...branch, ...Object.fromEntries(TEXT_FIELDS.map((k) => [k, branch[k] || ''])) }
+    : EMPTY)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -36,9 +39,7 @@ function BranchForm({ branch, onClose, onSaved }) {
         code: form.code.trim().toUpperCase(),
         name_ar: form.name_ar,
         name_en: form.name_en,
-        address_ar: form.address_ar || null,
-        address_en: form.address_en || null,
-        phone: form.phone || null,
+        ...Object.fromEntries(TEXT_FIELDS.map((k) => [k, form[k].trim() || null])),
         is_active: form.is_active,
       }
       if (branch) await adminApi.updateBranch(branch.id, body)
@@ -77,6 +78,12 @@ function BranchForm({ branch, onClose, onSaved }) {
           <TextField label={tx('الاسم بالإنجليزية', 'Name in English')} value={form.name_en} onChange={set('name_en')} error={errors.name_en} dir="ltr" />
           <TextField label={tx('العنوان بالعربية', 'Address in Arabic')} optional value={form.address_ar} onChange={set('address_ar')} dir="rtl" />
           <TextField label={tx('العنوان بالإنجليزية', 'Address in English')} optional value={form.address_en} onChange={set('address_en')} dir="ltr" />
+          <TextField label={tx('واتساب', 'WhatsApp')} optional value={form.whatsapp} onChange={set('whatsapp')} dir="ltr" type="tel" />
+          <TextField label={tx('البريد الإلكتروني', 'E-mail')} optional value={form.email} onChange={set('email')} error={errors.email} dir="ltr" type="email" />
+          <TextField label={tx('مواعيد العمل بالعربية', 'Opening hours (Arabic)')} optional value={form.hours_ar} onChange={set('hours_ar')} dir="rtl"
+            placeholder="السبت – الخميس، ١٢ ظهرًا – ١٠ مساءً" />
+          <TextField label={tx('مواعيد العمل بالإنجليزية', 'Opening hours (English)')} optional value={form.hours_en} onChange={set('hours_en')} dir="ltr"
+            placeholder="Sat – Thu, 12 pm – 10 pm" />
         </div>
         {branch && (
           <Checkbox label={tx('الفرع نشط', 'Branch is active')} description={tx('الفروع غير النشطة لا يمكن إسنادها لموظفين جدد.', "Inactive branches can't be assigned to staff.")}

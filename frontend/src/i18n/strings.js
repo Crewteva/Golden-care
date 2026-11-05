@@ -101,6 +101,11 @@ export const strings = {
   'err.file_missing': { ar: 'ملف المستند غير موجود في التخزين. أبلغ مدير النظام.', en: 'The document file is missing from storage. Tell the system admin.' },
   'err.alert_not_found': { ar: 'التنبيه غير موجود.', en: 'Alert not found.' },
   'err.link_not_found': { ar: 'الرابط غير موجود.', en: 'Link not found.' },
+  'err.in_use': { ar: 'لا يمكن الحذف لأنه مستخدم. احذف ما يعتمد عليه أولًا، أو أوقفه بدلًا من حذفه.', en: "Can't delete: it's in use. Remove what depends on it first, or switch it off instead." },
+  'err.schedule_overlap': { ar: 'هذه الساعات تتداخل مع ساعات أخرى للطبيب في نفس اليوم.', en: "These hours overlap the doctor's other hours on that day." },
+  'err.room_busy': { ar: 'الغرفة مشغولة بطبيب آخر في هذا الوقت.', en: 'The room is taken by another doctor at that time.' },
+  'err.leave_overlap': { ar: 'توجد إجازة أخرى لنفس الطبيب في هذه الفترة.', en: 'This doctor already has leave in this period.' },
+  'err.doctor_not_found': { ar: 'الطبيب غير موجود أو حسابه موقوف.', en: 'Doctor not found or deactivated.' },
 
   // field error codes (field-specific keys win: field.<name>.<code>)
   'field.required': { ar: 'هذا الحقل مطلوب.', en: 'This field is required.' },
@@ -135,5 +140,7 @@ export const strings = {
   'field.too_large': { ar: 'الملف أكبر من ١٥ ميجابايت.', en: 'The file is larger than 15 MB.' },
   'field.unsupported_type': { ar: 'نوع غير مدعوم. ارفع PDF أو JPG أو PNG.', en: 'Unsupported type. Upload a PDF, JPG or PNG.' },
   'field.change_reason.required': { ar: 'اكتب سبب تغيير الاسم أو الميلاد أو النوع أو الرقم القومي.', en: 'Give a reason for changing the name, birth date, sex or national ID.' },
+  'field.wrong_branch': { ar: 'هذه الغرفة في فرع آخر.', en: 'This room is in another branch.' },
+  'field.ends_on.too_long': { ar: 'الإجازة أطول من سنة.', en: 'Leave longer than a year.' },
   'field.patient_note.required': { ar: 'اكتب ملاحظة بسيطة للمريض (٥ أحرف على الأقل).', en: 'Write a short note for the patient (at least 5 characters).' },
 }

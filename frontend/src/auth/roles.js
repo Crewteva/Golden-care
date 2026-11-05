@@ -1,8 +1,7 @@
 // Every role: its dashboard address, icon and names. Codes match the backend `roles` table.
 export const ROLES = {
   admin: { icon: 'shield', ar: 'مدير النظام', en: 'System admin' },
-  owner: { icon: 'pie', ar: 'المالك', en: 'Owner' },
-  director: { icon: 'trending', ar: 'المدير العام', en: 'General manager' },
+  management: { icon: 'pie', ar: 'الإدارة', en: 'Management' },
   medical_director: { icon: 'award', ar: 'المدير الطبي', en: 'Medical director' },
   reception: { icon: 'bell', ar: 'الاستقبال', en: 'Reception' },
   patient_relations: { icon: 'headphones', ar: 'علاقات المرضى', en: 'Patient relations' },

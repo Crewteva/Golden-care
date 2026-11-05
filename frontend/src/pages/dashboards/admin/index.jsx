@@ -6,6 +6,7 @@ import Branches from './Branches'
 import Delegations from './Delegations'
 import ResetRequests from './ResetRequests'
 import Activity from './Activity'
+import Rooms from '../../../components/settings/Rooms'
 
 // System admin dashboard: pages, sidebar entries and the permission each one needs.
 export default {
@@ -18,6 +19,7 @@ export default {
     { path: 'cover', icon: 'swap', label: { ar: 'التغطية المؤقتة', en: 'Temporary cover' }, element: <Delegations />, permission: 'users.view' },
     { path: 'resets', icon: 'inbox', label: { ar: 'طلبات الاستعادة', en: 'Reset requests' }, element: <ResetRequests />, permission: 'password_resets.manage' },
     { path: 'branches', icon: 'building', label: { ar: 'الفروع', en: 'Branches' }, element: <Branches />, permission: 'users.view' },
+    { path: 'rooms', icon: 'layers', label: { ar: 'الغرف', en: 'Rooms' }, element: <Rooms />, permission: 'settings.view' },
     { path: 'activity', icon: 'activity', label: { ar: 'سجل النشاط', en: 'Activity log' }, element: <Activity />, permission: 'audit.view' },
   ],
 }
