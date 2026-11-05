@@ -158,6 +158,7 @@ export default function Users() {
     setPage(1)
   }
   const filtered = search || role || branch || status
+  const multiBranch = (branches.data || []).length > 1
   const branchName = (id) => {
     const b = branches.data?.find((x) => x.id === id)
     return b ? pick(b) : t('all_branches')
@@ -273,7 +274,7 @@ export default function Users() {
                           {u.roles.map((r) => (
                             <span key={`${r.role}:${r.branch_id}`} className="chip">
                               {roleName(r.role, lang)}
-                              <small>· {branchName(r.branch_id)}</small>
+                              {multiBranch && <small>· {branchName(r.branch_id)}</small>}
                             </span>
                           ))}
                         </div>
@@ -290,10 +291,10 @@ export default function Users() {
                           <span className="muted">{u.mfa_required ? tx('مطلوب', 'Required') : '—'}</span>
                         )}
                       </td>
-                      <td data-label={tx('آخر دخول', 'Last sign-in')} className="muted">
+                      <td data-label={tx('آخر دخول', 'Last sign-in')} className="muted" style={{ whiteSpace: 'nowrap' }}>
                         {u.last_login_at ? <bdi>{fmtRelative(u.last_login_at, locale)}</bdi> : t('never')}
                         {u.must_change_password && (
-                          <small style={{ display: 'block', color: 'var(--gold-700)' }}>
+                          <small style={{ display: 'block', color: 'var(--gold-700)', whiteSpace: 'normal', maxWidth: 180 }}>
                             {tx('بانتظار تغيير كلمة المرور المؤقتة', 'Temporary password not changed yet')}
                           </small>
                         )}
