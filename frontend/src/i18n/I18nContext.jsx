@@ -5,6 +5,9 @@ const I18nCtx = createContext(null)
 const STORAGE_KEY = 'gc.lang'
 
 function initialLang() {
+  // A shared link can pick the language: ?lang=en or ?lang=ar
+  const fromUrl = new URLSearchParams(window.location.search).get('lang')
+  if (fromUrl === 'ar' || fromUrl === 'en') return fromUrl
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'ar' || saved === 'en') return saved
