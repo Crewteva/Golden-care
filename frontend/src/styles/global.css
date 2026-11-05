@@ -137,7 +137,11 @@ button, input, select, textarea {
   top: 12px;
 }
 
-.num, .ltr {
+/* Localised dates/numbers keep the page direction; .ltr is for e-mails, phones, codes and IPs. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.ltr {
   direction: ltr;
   unicode-bidi: isolate;
   font-variant-numeric: tabular-nums;
@@ -757,7 +761,7 @@ button, input, select, textarea {
 .stats {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 .stat {
   position: relative;
