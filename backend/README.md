@@ -16,9 +16,14 @@ app/
                        files.py         private document storage, review & release to the patient
                        national_id.py   Egyptian national ID → birth date, sex, governorate
                        patients_api.py  /patients endpoints that each patient-facing role mounts
+                     and the clinic setup:
+                       catalog.py       specialties, services, prices (start dates, per-doctor), room types, rooms
+                       schedules.py     doctor profiles & services, weekly hours, leave, holidays, week view
+                       settings_api.py  /settings endpoints mounted by the roles that see or manage the setup
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
-                     admin, owner, director, medical_director, reception, patient_relations, doctor,
-                     nurse, cashier, accountant, hr, inventory, marketing, auditor, patient
+                     admin, management (owner / general manager), medical_director, reception,
+                     patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
+                     auditor, patient
 tests/               unit tests (pytest)
 ```
 
