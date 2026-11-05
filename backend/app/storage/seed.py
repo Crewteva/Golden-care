@@ -14,8 +14,7 @@ log = logging.getLogger(__name__)
 # code, kind, Arabic name, English name, two-step verification required by default
 ROLES = [
     ("admin", "staff", "مدير النظام", "System admin", True),
-    ("owner", "staff", "المالك", "Owner", True),
-    ("director", "staff", "المدير العام", "General manager", True),
+    ("management", "staff", "الإدارة", "Management", True),
     ("medical_director", "staff", "المدير الطبي", "Medical director", True),
     ("reception", "staff", "الاستقبال", "Reception", False),
     ("patient_relations", "staff", "علاقات المرضى", "Patient relations", False),
@@ -48,6 +47,11 @@ PERMISSIONS = [
     ("patient_files.upload_admin", "patient_files", "رفع الهويات والإقرارات", "Upload IDs & consents"),
     ("patient_files.upload_clinical", "patient_files", "رفع المستندات الطبية", "Upload medical documents"),
     ("patient_files.review", "patient_files", "مراجعة النتائج وإتاحتها للمريض", "Review & release results"),
+    ("settings.view", "settings", "عرض إعداد العيادة والجداول", "View clinic setup & schedules"),
+    ("settings.services", "settings", "إدارة التخصصات والخدمات", "Manage specialties & services"),
+    ("settings.prices", "settings", "إدارة الأسعار", "Manage prices"),
+    ("settings.rooms", "settings", "إدارة الغرف", "Manage rooms"),
+    ("settings.schedules", "settings", "إدارة الأطباء والجداول والإجازات", "Manage doctors, schedules & leave"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -71,13 +75,18 @@ PERMISSION_DEFAULTS = {
     "patient_files.upload_admin": ["reception", *CLINICAL],
     "patient_files.upload_clinical": CLINICAL,
     "patient_files.review": ["doctor", "medical_director"],
+    "settings.view": ["management", "medical_director", "admin", "reception", "patient_relations", "doctor", "nurse", "cashier"],
+    "settings.services": ["management", "medical_director"],
+    "settings.prices": ["management"],
+    "settings.rooms": ["management", "admin"],
+    "settings.schedules": ["management", "medical_director"],
 }
 
 # Synthetic people only. Never real staff or patients.
 DEMO_STAFF = [
     ("admin", "كريم منصور", "Karim Mansour", "admin"),
-    ("owner", "د. هشام المصري", "Dr. Hesham El-Masry", "owner"),
-    ("director", "منى عبد الرحمن", "Mona Abdelrahman", "director"),
+    ("management", "د. هشام المصري", "Dr. Hesham El-Masry", "owner"),
+    ("management", "منى عبد الرحمن", "Mona Abdelrahman", "director"),
     ("medical_director", "د. طارق فوزي", "Dr. Tarek Fawzy", "meddir"),
     ("reception", "نورهان عادل", "Nourhan Adel", "reception"),
     ("patient_relations", "ياسمين خالد", "Yasmin Khaled", "relations"),
@@ -97,6 +106,7 @@ DEMO_DOMAIN = "demo.goldencare.local"
 
 def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_patients import seed_demo_patients
+    from app.storage.demo_settings import seed_demo_settings
 
     with conn.transaction():
         _roles_and_permissions(conn)
@@ -105,6 +115,7 @@ def run_seed(conn: psycopg.Connection) -> None:
         if settings.seed_demo:
             _demo_accounts(conn, branch_id)
             seed_demo_patients(conn, branch_id)
+            seed_demo_settings(conn, branch_id)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:
@@ -193,7 +204,7 @@ def _demo_accounts(conn: psycopg.Connection, branch_id: int) -> None:
         ).fetchone()["id"]
         conn.execute(
             "INSERT INTO user_roles (user_id, role_code, branch_id) VALUES (%s, %s, %s)",
-            (user_id, role, None if role in ("admin", "owner", "director", "auditor") else branch_id),
+            (user_id, role, None if role in ("admin", "management", "auditor") else branch_id),
         )
 
     name_ar, name_en, phone_raw, dob, gender = DEMO_PATIENT

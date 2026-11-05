@@ -9,6 +9,7 @@ from fastapi import Depends, Query
 
 from app.core import audit
 from app.core.session import Ctx, require_permission
+from app.core.settings_api import router as settings_router
 from app.core.workspace import role_router
 from app.storage.db import get_conn
 from app.users.admin import service
@@ -17,6 +18,9 @@ from app.users.admin.schemas import (
 )
 
 router = role_router("admin")
+
+# /api/admin/settings/... (rooms; the rest of clinic setup is read-only for the admin)
+router.include_router(settings_router)
 
 can_view = require_permission("users.view")
 can_manage = require_permission("users.manage")

@@ -47,6 +47,10 @@ class BranchIn(BaseModel):
     address_ar: str | None = Field(default=None, max_length=300)
     address_en: str | None = Field(default=None, max_length=300)
     phone: str | None = Field(default=None, max_length=30)
+    whatsapp: str | None = Field(default=None, max_length=30)
+    email: str | None = Field(default=None, max_length=200)
+    hours_ar: str | None = Field(default=None, max_length=200)
+    hours_en: str | None = Field(default=None, max_length=200)
     is_active: bool = True
 
 

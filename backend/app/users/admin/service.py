@@ -492,12 +492,15 @@ def _branch_values(body: BranchIn) -> dict:
     code = body.code.strip().upper()
     if not code.isalpha() or not code.isascii():
         raise field_error("code", "invalid")
-    phone = None
-    if body.phone and body.phone.strip():
-        phone = body.phone.strip()
+    email = None
+    if body.email and body.email.strip():
+        email = normalize_email(body.email)
+        if not email:
+            raise field_error("email", "invalid")
     return {"code": code, "name_ar": clean_name(body.name_ar), "name_en": clean_name(body.name_en),
             "address_ar": clean_name(body.address_ar), "address_en": clean_name(body.address_en),
-            "phone": phone, "is_active": body.is_active}
+            "phone": clean_name(body.phone), "whatsapp": clean_name(body.whatsapp), "email": email,
+            "hours_ar": clean_name(body.hours_ar), "hours_en": clean_name(body.hours_en), "is_active": body.is_active}
 
 
 def create_branch(conn: psycopg.Connection, ctx: Ctx, body: BranchIn) -> dict:
@@ -506,8 +509,9 @@ def create_branch(conn: psycopg.Connection, ctx: Ctx, body: BranchIn) -> dict:
         raise AppError(409, "conflict", fields={"code": "taken"})
     branch_id = conn.execute(
         """
-        INSERT INTO branches (code, name_ar, name_en, address_ar, address_en, phone, is_active)
-        VALUES (%(code)s, %(name_ar)s, %(name_en)s, %(address_ar)s, %(address_en)s, %(phone)s, %(is_active)s)
+        INSERT INTO branches (code, name_ar, name_en, address_ar, address_en, phone, whatsapp, email, hours_ar, hours_en, is_active)
+        VALUES (%(code)s, %(name_ar)s, %(name_en)s, %(address_ar)s, %(address_en)s, %(phone)s, %(whatsapp)s, %(email)s,
+                %(hours_ar)s, %(hours_en)s, %(is_active)s)
         RETURNING id
         """,
         values,
@@ -533,7 +537,8 @@ def update_branch(conn: psycopg.Connection, ctx: Ctx, branch_id: int, body: Bran
     conn.execute(
         """
         UPDATE branches SET code = %(code)s, name_ar = %(name_ar)s, name_en = %(name_en)s, address_ar = %(address_ar)s,
-               address_en = %(address_en)s, phone = %(phone)s, is_active = %(is_active)s
+               address_en = %(address_en)s, phone = %(phone)s, whatsapp = %(whatsapp)s, email = %(email)s,
+               hours_ar = %(hours_ar)s, hours_en = %(hours_en)s, is_active = %(is_active)s
         WHERE id = %(id)s
         """,
         {**values, "id": branch_id},

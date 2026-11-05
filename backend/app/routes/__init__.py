@@ -8,14 +8,13 @@ from app.users.accountant.routes import router as accountant_router
 from app.users.admin.routes import router as admin_router
 from app.users.auditor.routes import router as auditor_router
 from app.users.cashier.routes import router as cashier_router
-from app.users.director.routes import router as director_router
 from app.users.doctor.routes import router as doctor_router
 from app.users.hr.routes import router as hr_router
 from app.users.inventory.routes import router as inventory_router
+from app.users.management.routes import router as management_router
 from app.users.marketing.routes import router as marketing_router
 from app.users.medical_director.routes import router as medical_director_router
 from app.users.nurse.routes import router as nurse_router
-from app.users.owner.routes import router as owner_router
 from app.users.patient.routes import router as patient_router
 from app.users.patient_relations.routes import router as patient_relations_router
 from app.users.reception.routes import router as reception_router
@@ -34,8 +33,7 @@ api_router.include_router(auth_router, prefix="/auth")
 # One API per role: /api/admin, /api/doctor, /api/hr, ...
 ROLE_ROUTERS = {
     "admin": admin_router,
-    "owner": owner_router,
-    "director": director_router,
+    "management": management_router,
     "medical-director": medical_director_router,
     "reception": reception_router,
     "patient-relations": patient_relations_router,

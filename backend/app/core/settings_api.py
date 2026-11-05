@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 
 from app.core import catalog, schedules
 from app.core.session import Ctx, require_permission
@@ -223,7 +223,3 @@ def week(start: date | None = None, doctor_id: UUID | None = None, _: Ctx = Depe
         today = date.today()
         start = today - timedelta(days=(today.weekday() + 2) % 7)  # the Saturday that starts this week
     return schedules.week(conn, start, doctor_id)
-
-
-def _unused(_: int = Query(0)):  # keeps FastAPI from complaining about an empty module in some tools
-    return None
