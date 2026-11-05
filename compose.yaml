@@ -33,13 +33,14 @@ services:
       MFA_ISSUER: ${MFA_ISSUER:-Golden Care Clinics}
       API_DOCS: ${API_DOCS:-false}
 
-  frontend:
+  # The React site (nginx). It is the public entry point and forwards /api to the backend.
+  web:
     build: ./frontend
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "${PORT:-8080}:80"
+    expose:
+      - "80"
 
 volumes:
   db-data:
