@@ -145,6 +145,12 @@ def seed_demo_patients(conn: psycopg.Connection, branch_id: int) -> None:
     omar = conn.execute("SELECT id FROM patients WHERE phone = %s", (normalize_phone("01001110001"),)).fetchone()
     if omar:
         ids["omar"] = omar["id"]
+    last = len(PEOPLE) + 10
+
+    def days_ago(seq: int) -> int:
+        # files opened over the last ~2 months, the first one earliest
+        return (last - seq) * 2 + 1
+
     for seq, (key, name_ar, name_en, born, gender, phone, area, gov) in enumerate(PEOPLE, 11):
         nid = _national_id(born, gender, gov, seq * 37) if gov else None
         ids[key] = conn.execute(
@@ -157,7 +163,7 @@ def seed_demo_patients(conn: psycopg.Connection, branch_id: int) -> None:
             RETURNING id
             """,
             (name_ar, name_en, normalize_name(f"{name_ar} {name_en}"), normalize_phone(phone) if phone else None, born,
-             gender, nid, area, seq % 3 != 0, branch_id, reception, reception, 70 - seq * 2, 70 - seq * 2),
+             gender, nid, area, seq % 3 != 0, branch_id, reception, reception, days_ago(seq), days_ago(seq)),
         ).fetchone()["id"]
 
     for child, relative, relationship, guardian in FAMILY:

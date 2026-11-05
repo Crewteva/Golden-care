@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Button from '../Button'
 import Icon from '../Icon'
 import Modal from '../Modal'
@@ -184,10 +184,10 @@ export default function PatientFile() {
   const { tx, lang, pick, locale } = useI18n()
   const { api, patientsBase, can } = useWorkspace()
   const { data, error, loading, reload, setData } = useAsync(() => api.get(id), [id, api])
-  const [tab, setTab] = useState('overview')
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') || 'overview'
+  const setTab = (value) => setParams(value === 'overview' ? {} : { tab: value }, { replace: true })
   const [editing, setEditing] = useState(false)
-
-  useEffect(() => setTab('overview'), [id])
   if (error) return <ErrorState error={error} onRetry={reload} />
   if (loading && !data) return <PageLoader />
 
