@@ -38,12 +38,39 @@ PERMISSIONS = [
     ("password_resets.manage", "access", "معالجة طلبات استعادة كلمة المرور", "Handle password reset requests"),
     ("branches.manage", "organization", "إدارة الفروع", "Manage branches"),
     ("audit.view", "audit", "عرض سجل النشاط", "View the activity log"),
+    ("patients.view", "patients", "عرض ملفات المرضى", "View patient files"),
+    ("patients.create", "patients", "تسجيل مريض جديد", "Register new patients"),
+    ("patients.edit", "patients", "تعديل بيانات المريض والعائلة", "Edit patient details & family"),
+    ("patients.alerts", "patients", "إدارة التنبيهات الطبية", "Manage medical alerts"),
+    ("patients.portal_access", "patients", "منح دخول بوابة المريض", "Give patient portal access"),
+    ("patient_files.view_admin", "patient_files", "عرض الهويات والإقرارات", "Open IDs & consents"),
+    ("patient_files.view_clinical", "patient_files", "عرض المستندات الطبية", "Open medical documents"),
+    ("patient_files.upload_admin", "patient_files", "رفع الهويات والإقرارات", "Upload IDs & consents"),
+    ("patient_files.upload_clinical", "patient_files", "رفع المستندات الطبية", "Upload medical documents"),
+    ("patient_files.review", "patient_files", "مراجعة النتائج وإتاحتها للمريض", "Review & release results"),
 ]
 
-# Applied only when a role is first created, so later changes made by the admin are kept.
-DEFAULT_GRANTS = {
-    "admin": [code for code, *_ in PERMISSIONS],
-    "auditor": ["audit.view"],
+CLINICAL = ["doctor", "nurse", "medical_director"]
+# Which roles get each permission by default. Applied when a permission or a role is first created,
+# so changes the admin makes later in Roles & permissions are kept.
+PERMISSION_DEFAULTS = {
+    "users.view": ["admin"],
+    "users.manage": ["admin"],
+    "roles.manage": ["admin"],
+    "delegations.manage": ["admin"],
+    "password_resets.manage": ["admin"],
+    "branches.manage": ["admin"],
+    "audit.view": ["admin", "auditor"],
+    "patients.view": ["reception", "patient_relations", *CLINICAL],
+    "patients.create": ["reception"],
+    "patients.edit": ["reception"],
+    "patients.alerts": CLINICAL,
+    "patients.portal_access": ["reception"],
+    "patient_files.view_admin": ["reception", *CLINICAL],
+    "patient_files.view_clinical": CLINICAL,
+    "patient_files.upload_admin": ["reception", *CLINICAL],
+    "patient_files.upload_clinical": CLINICAL,
+    "patient_files.review": ["doctor", "medical_director"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -69,23 +96,26 @@ DEMO_DOMAIN = "demo.goldencare.local"
 
 
 def run_seed(conn: psycopg.Connection) -> None:
+    from app.storage.demo_patients import seed_demo_patients
+
     with conn.transaction():
         _roles_and_permissions(conn)
         branch_id = _main_branch(conn)
         _first_admin(conn)
         if settings.seed_demo:
             _demo_accounts(conn, branch_id)
+            seed_demo_patients(conn, branch_id)
+
+
+def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:
+    conn.execute(
+        "INSERT INTO role_permissions (role_code, permission_code) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+        (role, permission),
+    )
 
 
 def _roles_and_permissions(conn: psycopg.Connection) -> None:
-    for code, module, name_ar, name_en in PERMISSIONS:
-        conn.execute(
-            """
-            INSERT INTO permissions (code, module, name_ar, name_en) VALUES (%s, %s, %s, %s)
-            ON CONFLICT (code) DO UPDATE SET module = EXCLUDED.module, name_ar = EXCLUDED.name_ar, name_en = EXCLUDED.name_en
-            """,
-            (code, module, name_ar, name_en),
-        )
+    new_roles = set()
     for order, (code, kind, name_ar, name_en, mfa) in enumerate(ROLES):
         created = conn.execute(
             """
@@ -95,11 +125,21 @@ def _roles_and_permissions(conn: psycopg.Connection) -> None:
             (code, kind, name_ar, name_en, mfa, order),
         ).fetchone()
         if created:
-            for perm in DEFAULT_GRANTS.get(code, []):
-                conn.execute("INSERT INTO role_permissions (role_code, permission_code) VALUES (%s, %s)", (code, perm))
+            new_roles.add(code)
         else:
             conn.execute("UPDATE roles SET name_ar = %s, name_en = %s, sort_order = %s WHERE code = %s",
                          (name_ar, name_en, order, code))
+    for code, module, name_ar, name_en in PERMISSIONS:
+        created = conn.execute(
+            "INSERT INTO permissions (code, module, name_ar, name_en) VALUES (%s, %s, %s, %s) ON CONFLICT (code) DO NOTHING RETURNING code",
+            (code, module, name_ar, name_en),
+        ).fetchone()
+        if not created:
+            conn.execute("UPDATE permissions SET module = %s, name_ar = %s, name_en = %s WHERE code = %s",
+                         (module, name_ar, name_en, code))
+        for role in PERMISSION_DEFAULTS.get(code, []):
+            if created or role in new_roles:
+                _grant(conn, role, code)
 
 
 def _main_branch(conn: psycopg.Connection) -> int:

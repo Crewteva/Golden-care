@@ -48,6 +48,7 @@ def search(
     category: str | None = None,
     actor_id=None,
     related_user=None,
+    patient_id=None,
     date_from: date | None = None,
     date_to: date | None = None,
     page: int = 1,
@@ -67,6 +68,9 @@ def search(
     if related_user:
         where.append("(a.actor_id = %s OR (a.entity = 'user' AND a.entity_id = %s::text))")
         params += [related_user, str(related_user)]
+    if patient_id:
+        where.append("((a.entity = 'patient' AND a.entity_id = %s) OR a.details->>'patient_id' = %s)")
+        params += [str(patient_id), str(patient_id)]
     if date_from:
         where.append("a.at >= %s::date")
         params.append(date_from)

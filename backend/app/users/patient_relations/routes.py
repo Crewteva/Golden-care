@@ -1,12 +1,16 @@
-"""/api/patient-relations: Patient relations workspace. Add this role's endpoints here as its features are built."""
+"""/api/patient-relations: Patient relations: look up patient contact details."""
 import psycopg
 from fastapi import Depends
 
+from app.core.patients_api import router as patients_router
 from app.core.session import Ctx, ready_ctx
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
 router = role_router("patient_relations")
+
+# /api/patient-relations/patients/... (what this role may do there is set by its permissions)
+router.include_router(patients_router)
 
 
 @router.get("/home")

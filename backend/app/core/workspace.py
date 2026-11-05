@@ -27,8 +27,22 @@ def workspace_home(conn: psycopg.Connection, ctx: Ctx) -> dict:
         """,
         {"uid": ctx.user_id},
     ).fetchall()
-    return {
+    summary = {
         "previous_login_at": ctx.user["previous_login_at"],
         "previous_login_ip": ctx.user["previous_login_ip"],
         "cover": cover,
     }
+    if "patients.view" in ctx.permissions:
+        summary["patients"] = conn.execute(
+            """
+            SELECT count(*) AS total,
+                   count(*) FILTER (WHERE created_at >= date_trunc('day', now())) AS today,
+                   count(*) FILTER (WHERE created_at >= date_trunc('day', now()) - interval '6 days') AS week
+            FROM patients
+            """
+        ).fetchone()
+    if "patient_files.review" in ctx.permissions:
+        summary["pending_reviews"] = conn.execute(
+            "SELECT count(*) AS n FROM patient_files WHERE review_status = 'pending' AND voided_at IS NULL"
+        ).fetchone()["n"]
+    return summary

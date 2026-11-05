@@ -32,6 +32,10 @@ services:
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       MFA_ISSUER: ${MFA_ISSUER:-Golden Care Clinics}
       API_DOCS: ${API_DOCS:-false}
+      FILES_DIR: /data/files
+    volumes:
+      # patient documents: private, mounted only here (never into the web service)
+      - patient-files:/data/files
 
   # The React site (nginx). It is the public entry point and forwards /api to the backend.
   web:
@@ -44,3 +48,4 @@ services:
 
 volumes:
   db-data:
+  patient-files:

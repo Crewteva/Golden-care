@@ -6,6 +6,7 @@ from fastapi import Request
 
 from app.auth.service import start_session
 from app.core import audit
+from app.core import patients as patients_core
 from app.core.errors import AppError, field_error
 from app.core.normalize import clean_name, normalize_email, normalize_name, normalize_phone
 from app.core.ratelimit import register_limit
@@ -49,7 +50,18 @@ def register(conn: psycopg.Connection, body: RegisterIn, request: Request) -> tu
     if taken:
         raise AppError(409, "conflict", fields=taken)
 
-    name_ar, name_en = clean_name(body.full_name_ar), clean_name(body.full_name_en)
+    # Reception may already have opened a file with this mobile. Same birth date → link the account to it;
+    # anything else must be checked by reception so nobody gets into someone else's file.
+    existing = conn.execute(
+        "SELECT * FROM patients WHERE (phone = %s OR phone2 = %s) AND user_id IS NULL", (phone, phone),
+    ).fetchall()
+    match = [p for p in existing if p["date_of_birth"] == body.date_of_birth]
+    if existing and len(match) != 1:
+        raise AppError(409, "file_exists_contact_reception")
+    linked = match[0] if match else None
+
+    name_ar = linked["full_name_ar"] if linked else clean_name(body.full_name_ar)
+    name_en = (linked["full_name_en"] if linked else None) or clean_name(body.full_name_en)
     search = normalize_name(f"{name_ar} {name_en or ''}")
     user_id = conn.execute(
         """
@@ -59,21 +71,50 @@ def register(conn: psycopg.Connection, body: RegisterIn, request: Request) -> tu
         (name_ar, name_en, search, email, phone, hash_password(body.password)),
     ).fetchone()["id"]
     conn.execute("INSERT INTO user_roles (user_id, role_code) VALUES (%s, 'patient')", (user_id,))
-    patient = conn.execute(
-        """
-        INSERT INTO patients (user_id, full_name_ar, full_name_en, name_search, phone, email, date_of_birth, gender,
-                              consent_terms_at, consent_messages)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), %s) RETURNING id, mrn
-        """,
-        (user_id, name_ar, name_en, search, phone, email, body.date_of_birth, body.gender, body.consent_messages),
-    ).fetchone()
+    if linked:
+        patient = conn.execute(
+            """
+            UPDATE patients SET user_id = %s, email = COALESCE(email, %s), consent_messages = %s, updated_at = now()
+            WHERE id = %s RETURNING id, mrn
+            """,
+            (user_id, email, body.consent_messages, linked["id"]),
+        ).fetchone()
+    else:
+        patient = conn.execute(
+            """
+            INSERT INTO patients (user_id, full_name_ar, full_name_en, name_search, phone, email, date_of_birth, gender,
+                                  consent_terms_at, consent_messages)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), %s) RETURNING id, mrn
+            """,
+            (user_id, name_ar, name_en, search, phone, email, body.date_of_birth, body.gender, body.consent_messages),
+        ).fetchone()
 
     user = conn.execute("SELECT * FROM users WHERE id = %s", (user_id,)).fetchone()
     token = start_session(conn, user, request)
     ctx = load_ctx(conn, token, request)
     audit.record(conn, "patient.registered", ctx=ctx, entity="patient", entity_id=patient["id"],
-                 details={"mrn": patient["mrn"], "consent_messages": body.consent_messages}, ip=ip, user_agent=user_agent)
+                 details={"mrn": patient["mrn"], "consent_messages": body.consent_messages,
+                          "linked_existing_file": linked is not None}, ip=ip, user_agent=user_agent)
     return token, ctx
+
+
+def my_patient_ids(conn: psycopg.Connection, ctx: Ctx) -> list:
+    """The patient's own file plus the files they manage as guardian (e.g. their children)."""
+    own = _patient_of(conn, ctx)
+    managed = conn.execute(
+        "SELECT patient_id FROM patient_family WHERE relative_id = %s AND is_guardian AND removed_at IS NULL",
+        (own["id"],),
+    ).fetchall()
+    return [own["id"], *[m["patient_id"] for m in managed]]
+
+
+def family(conn: psycopg.Connection, ctx: Ctx) -> list[dict]:
+    own = _patient_of(conn, ctx)
+    return [
+        {k: v for k, v in rel.items() if k in ("id", "mrn", "full_name_ar", "full_name_en", "date_of_birth", "gender",
+                                               "relationship", "managed_by_this_patient", "manages_this_patient")}
+        for rel in patients_core.family_of(conn, own["id"])
+    ]
 
 
 def _patient_of(conn: psycopg.Connection, ctx: Ctx) -> dict:

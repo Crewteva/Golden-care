@@ -21,6 +21,10 @@ class Settings:
 
     mfa_issuer = os.environ.get("MFA_ISSUER", "Golden Care Clinics")
 
+    # Private document storage (a volume mounted only into the backend).
+    files_dir = os.environ.get("FILES_DIR", "/data/files")
+    max_upload_mb = int(os.environ.get("MAX_UPLOAD_MB", "15"))
+
     # First admin account, created only when the database has no staff yet.
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@goldencare.local")
     admin_password = os.environ.get("ADMIN_PASSWORD") or None

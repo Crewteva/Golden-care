@@ -7,6 +7,7 @@ The frontend turns `code` and the field codes into Arabic / English messages.
 import logging
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -37,7 +38,7 @@ def _body(code: str, fields: dict | None = None, **extra) -> dict:
 def install(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error(_: Request, exc: AppError):
-        return JSONResponse(_body(exc.code, exc.fields, **exc.extra), status_code=exc.status)
+        return JSONResponse(jsonable_encoder(_body(exc.code, exc.fields, **exc.extra)), status_code=exc.status)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError):

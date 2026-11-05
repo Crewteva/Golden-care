@@ -12,7 +12,8 @@ RUN pip install -r requirements.txt
 
 COPY app ./app
 
-RUN useradd --create-home --uid 10001 api
+RUN useradd --create-home --uid 10001 api \
+ && mkdir -p /data/files && chown -R api:api /data/files && chmod 700 /data/files
 USER api
 
 EXPOSE 8000
