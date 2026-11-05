@@ -177,8 +177,8 @@ export default function ActivityLog({ load }) {
                           </Badge>
                           {!ACTIONS[row.action] && <small className="muted mono"> {row.action}</small>}
                         </td>
-                        <td data-label="IP" className="ltr mono muted">
-                          {row.ip || '—'}
+                        <td data-label="IP" className="mono muted">
+                          <bdi className="ltr">{row.ip || '—'}</bdi>
                         </td>
                         <td style={{ textAlign: 'end' }}>
                           {hasDetails && (

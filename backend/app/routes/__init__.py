@@ -31,11 +31,6 @@ def health(conn: psycopg.Connection = Depends(get_conn)):
 
 api_router.include_router(auth_router, prefix="/auth")
 
-import os  # TEMPORARY visual QA
-if os.environ.get("DEV_LOGIN") == "on":
-    from app.auth.dev import router as dev_router
-    api_router.include_router(dev_router, prefix="/auth")
-
 # One API per role: /api/admin, /api/doctor, /api/hr, ...
 ROLE_ROUTERS = {
     "admin": admin_router,

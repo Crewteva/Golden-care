@@ -114,7 +114,7 @@ export default function PatientForm({ value, onChange, errors = {}, phoneOptiona
             options={[{ value: 'female', label: tx('أنثى', 'Female') }, { value: 'male', label: tx('ذكر', 'Male') }]} />
           <TextField label={tx('الجنسية', 'Nationality')} value={value.nationality} onChange={set('nationality')} error={errors.nationality}
             hint={tx('EG لمصر', 'EG for Egyptian')} dir="ltr" />
-          <TextField label={tx('رقم جواز السفر', 'Passport number')} optional value={value.passport_no} onChange={set('passport_no')}
+          <TextField label={tx('جواز السفر', 'Passport no.')} optional value={value.passport_no} onChange={set('passport_no')}
             hint={tx('لغير المصريين', 'For non-Egyptians')} dir="ltr" />
         </div>
       </fieldset>
@@ -128,7 +128,7 @@ export default function PatientForm({ value, onChange, errors = {}, phoneOptiona
           <TextField label={tx('الموبايل', 'Mobile')} optional={phoneOptional} type="tel" inputMode="tel" dir="ltr" value={value.phone}
             onChange={set('phone')} error={errors.phone} placeholder="01X XXXX XXXX"
             hint={phoneOptional ? tx('يمكن تركه فارغًا: نتواصل عبر ولي الأمر', 'Can be empty: we contact the guardian') : undefined} />
-          <TextField label={tx('موبايل آخر', 'Second mobile')} optional type="tel" inputMode="tel" dir="ltr" value={value.phone2}
+          <TextField label={tx('موبايل آخر', 'Mobile 2')} optional type="tel" inputMode="tel" dir="ltr" value={value.phone2}
             onChange={set('phone2')} error={errors.phone2} />
           <TextField label={tx('البريد الإلكتروني', 'E-mail')} optional type="email" dir="ltr" value={value.email} onChange={set('email')}
             error={errors.email} />

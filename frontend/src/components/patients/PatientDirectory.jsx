@@ -145,8 +145,8 @@ export default function PatientDirectory() {
                         <td data-label={tx('العمر', 'Age')} style={{ whiteSpace: 'nowrap' }}>
                           {ageLabel(p.date_of_birth, tx)} <span className="muted">· {sexLabel(p.gender, tx)}</span>
                         </td>
-                        <td data-label={tx('الموبايل', 'Mobile')} className="ltr" style={{ textAlign: 'start', whiteSpace: 'nowrap' }}>
-                          {p.phone ? fmtPhone(p.phone) : <span className="muted">{tx('عبر ولي الأمر', 'via guardian')}</span>}
+                        <td data-label={tx('الموبايل', 'Mobile')} style={{ whiteSpace: 'nowrap' }}>
+                          {p.phone ? <bdi className="ltr">{fmtPhone(p.phone)}</bdi> : <span className="muted">{tx('عبر ولي الأمر', 'via guardian')}</span>}
                         </td>
                         <td data-label={tx('تنبيهات', 'Alerts')}>
                           {!p.alerts.length ? <span className="muted">—</span> : (

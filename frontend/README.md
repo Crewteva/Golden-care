@@ -11,6 +11,8 @@ src/
   api/                 functions that call the backend (auth.js, admin.js, patient.js)
   auth/                signed-in user (AuthContext), page guards, roles & where each one goes
   components/          shared UI: buttons, fields, modal, toasts, activity log, role home
+    patients/          the patient file used by several roles: directory, file page, form, duplicate panel,
+                       alerts, family, documents (upload / review / release), review queue
   layouts/             AuthLayout (sign-in screens), DashboardLayout (sidebar + top bar)
   i18n/                language switch and shared Arabic/English text
   lib/                 formatting, error messages, password rules, activity labels
