@@ -95,7 +95,7 @@ export default function PatientForm({ value, onChange, errors = {}, phoneOptiona
           <TextField label={tx('الاسم بالإنجليزية', 'Full name (English)')} optional value={value.full_name_en} onChange={set('full_name_en')}
             error={errors.full_name_en} dir="ltr" lang="en" />
         </div>
-        <div className="form-grid-3">
+        <div className="form-grid">
           <div className="field">
             <TextField label={tx('الرقم القومي', 'National ID')} value={value.national_id} onChange={onNationalId}
               error={errors.national_id} hint={nidHint} inputMode="numeric" dir="ltr" maxLength={20} placeholder="2XXXXXXXXXXXXX" />
@@ -108,10 +108,10 @@ export default function PatientForm({ value, onChange, errors = {}, phoneOptiona
           </div>
           <TextField label={tx('تاريخ الميلاد', 'Date of birth')} type="date" value={value.date_of_birth} onChange={set('date_of_birth')}
             error={errors.date_of_birth} max={today} />
+        </div>
+        <div className="form-grid-3">
           <ChoiceGroup legend={tx('النوع', 'Sex')} name="gender" value={value.gender} onChange={set('gender')} error={errors.gender}
             options={[{ value: 'female', label: tx('أنثى', 'Female') }, { value: 'male', label: tx('ذكر', 'Male') }]} />
-        </div>
-        <div className="form-grid">
           <TextField label={tx('الجنسية', 'Nationality')} value={value.nationality} onChange={set('nationality')} error={errors.nationality}
             hint={tx('EG لمصر', 'EG for Egyptian')} dir="ltr" />
           <TextField label={tx('رقم جواز السفر', 'Passport number')} optional value={value.passport_no} onChange={set('passport_no')}
