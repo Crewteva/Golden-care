@@ -3,6 +3,7 @@ room types and rooms. Shared by every role that sees or manages the clinic setup
 import re
 from contextlib import contextmanager
 from datetime import date
+from decimal import Decimal
 
 import psycopg
 from psycopg import errors as pg_errors
@@ -147,6 +148,19 @@ def _service_values(conn: psycopg.Connection, body: ServiceIn) -> dict:
             "dental_result": body.dental_result if body.clinical_record == "dental" else None}
 
 
+def _service_billing(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, row: dict) -> dict:
+    """VAT and direct cost are part of the price list: only someone who manages prices may change them."""
+    wanted = {k: getattr(body, k) for k in ("vat_rate", "direct_cost") if getattr(body, k) is not None}
+    wanted = {k: v for k, v in wanted.items() if row.get(k) is None or Decimal(row[k]) != v}
+    if not wanted:
+        return row
+    if "settings.prices" not in ctx.permissions:
+        raise AppError(403, "forbidden", permission="settings.prices")
+    sets = ", ".join(f"{k} = %({k})s" for k in wanted)
+    return conn.execute(f"UPDATE services SET {sets}, updated_at = now() WHERE id = %(id)s RETURNING *",
+                        {**wanted, "id": row["id"]}).fetchone()
+
+
 def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id: int | None = None) -> dict:
     values = _service_values(conn, body)
     if service_id is None:
@@ -161,6 +175,7 @@ def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id
                 """,
                 values,
             ).fetchone()
+        row = _service_billing(conn, ctx, body, row)
         if body.price is not None:
             conn.execute(
                 "INSERT INTO service_prices (service_id, amount, starts_on, created_by, updated_by) VALUES (%s, %s, %s, %s, %s)",
@@ -183,8 +198,10 @@ def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id
             """,
             {**values, "id": service_id},
         ).fetchone()
+    row = _service_billing(conn, ctx, body, row)
+    after = {**values, "vat_rate": row["vat_rate"], "direct_cost": row["direct_cost"]}
     audit.record(conn, "settings.service_updated", ctx=ctx, entity="service", entity_id=service_id,
-                 details={"code": values["code"], "changes": _changes(before, values)})
+                 details={"code": values["code"], "changes": _changes(before, after)})
     return row
 
 

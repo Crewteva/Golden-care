@@ -38,6 +38,10 @@ class ServiceIn(BaseModel):
     dental_result: Literal["filling", "crown", "root_canal", "extracted", "implant", "bridge", "sealant", "veneer"] | None = None
     # only used when creating: the service's first standard price
     price: FirstPriceIn | None = None
+    # billing: VAT (0 = exempt) and the direct cost taken off before a doctor's percentage. Changing them needs settings.prices;
+    # left out = kept as they are
+    vat_rate: Decimal | None = Field(default=None, ge=0, le=30, decimal_places=2)
+    direct_cost: Decimal | None = Field(default=None, ge=0, le=1_000_000, decimal_places=2)
 
 
 class PriceIn(BaseModel):

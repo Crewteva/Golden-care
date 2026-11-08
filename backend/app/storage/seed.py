@@ -70,6 +70,12 @@ PERMISSIONS = [
     ("dental.lab", "dental", "متابعة أعمال المعمل", "Track dental lab work"),
     ("complaints.create", "complaints", "تسجيل شكوى أو طلب", "Log complaints & requests"),
     ("complaints.manage", "complaints", "متابعة وحل الشكاوى والطلبات", "Handle & resolve complaints"),
+    ("billing.view", "billing", "عرض الفواتير والإيصالات", "View invoices & receipts"),
+    ("billing.invoice", "billing", "إنشاء وإصدار الفواتير", "Create & issue invoices"),
+    ("billing.collect", "billing", "تحصيل المدفوعات وإدارة الوردية", "Take payments & run a cash shift"),
+    ("billing.discount", "billing", "منح خصم في حدود المسموح", "Give discounts within the limit"),
+    ("billing.approve", "billing", "اعتماد الخصومات والإلغاء والاسترداد", "Approve discounts, voids & refunds"),
+    ("settings.billing", "settings", "إدارة الباقات ونسب الأطباء وقواعد الفوترة", "Manage packages, doctor shares & billing rules"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -116,6 +122,12 @@ PERMISSION_DEFAULTS = {
     "dental.lab": ["doctor", "nurse", "reception"],
     "complaints.create": ["reception", "patient_relations", "nurse", "cashier", "doctor"],
     "complaints.manage": ["patient_relations", "management"],
+    "billing.view": ["cashier", "reception", "management", "accountant", "auditor"],
+    "billing.invoice": ["cashier"],
+    "billing.collect": ["cashier"],
+    "billing.discount": ["cashier"],
+    "billing.approve": ["management"],
+    "settings.billing": ["management"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -146,6 +158,7 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_settings import seed_demo_settings
     from app.storage.demo_visits import seed_clinical_lists, seed_demo_visits
     from app.storage.demo_dental import seed_demo_complaints, seed_demo_dental
+    from app.storage.demo_billing import seed_demo_billing
 
     with conn.transaction():
         _roles_and_permissions(conn)
@@ -160,6 +173,7 @@ def run_seed(conn: psycopg.Connection) -> None:
             seed_demo_visits(conn)
             seed_demo_dental(conn, branch_id)
             seed_demo_complaints(conn)
+            seed_demo_billing(conn, branch_id)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:
