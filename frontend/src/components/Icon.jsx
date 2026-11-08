@@ -309,7 +309,8 @@ const PATHS = {
       <rect x="6" y="14" width="12" height="8" rx="1" />
     </>
   ),
-  thermometer: <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />,
+  download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />,
+  thermometer:<path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />,
   pen: (
     <>
       <path d="M12 20h9" />

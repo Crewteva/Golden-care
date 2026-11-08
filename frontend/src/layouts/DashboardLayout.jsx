@@ -57,7 +57,7 @@ export default function DashboardLayout({ config }) {
           <div className="nav-title">{tx('مساحة العمل', 'Workspace')}</div>
           <div className="nav">
             {pages.map((p) => (
-              <NavLink key={p.path} to={p.path ? `${base}/${p.path}` : base} end={!p.path}>
+              <NavLink key={p.path} to={p.path ? `${base}/${p.path}` : base} end={!p.path || p.end}>
                 <Icon name={p.icon} size={19} />
                 <span>{p.label[lang]}</span>
               </NavLink>

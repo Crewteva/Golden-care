@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import Icon from '../../../components/Icon'
 import RoleHome from '../../../components/RoleHome'
 import BillingStats from '../../../components/billing/BillingStats'
+import AccountingShortcuts from '../../../components/accounting/Shortcuts'
 import { useI18n } from '../../../i18n/I18nContext'
 
 // Still to come in this workspace (from the project to-do list).
@@ -25,6 +26,7 @@ export default function Home() {
     <RoleHome upcoming={UPCOMING}>
       {(data) => (<>
       <BillingStats data={data} />
+      <AccountingShortcuts only={['accounting', 'accounting/payouts', 'accounting/months', 'accounting/reports']} />
       <section className="card">
         <div className="card-head">
           <div>
