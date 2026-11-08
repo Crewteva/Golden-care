@@ -108,4 +108,23 @@ def workspace_home(conn: psycopg.Connection, ctx: Ctx) -> dict:
             """,
             {"all": manager, "me": ctx.user_id},
         ).fetchone()
+    if "billing.view" in ctx.permissions or "billing.approve" in ctx.permissions:
+        summary["billing"] = conn.execute(
+            """
+            SELECT (SELECT count(*) FROM appointments a WHERE a.starts_at::date = current_date AND a.status IN ('arrived', 'in_room', 'completed')
+                      AND NOT EXISTS (SELECT 1 FROM invoices v WHERE v.appointment_id = a.id AND v.status IN ('draft', 'pending_approval', 'issued')))
+                     AS unbilled_today,
+                   (SELECT COALESCE(sum(total), 0) FROM invoices WHERE status = 'issued' AND issued_at::date = current_date) AS invoiced_today,
+                   (SELECT COALESCE(sum(r.total), 0) - COALESCE(sum((SELECT COALESCE(sum(x.amount), 0) FROM receipt_payments x
+                                                                     WHERE x.receipt_id = r.id AND x.method = 'credit')), 0)
+                    FROM receipts r WHERE r.created_at::date = current_date) AS collected_today,
+                   (SELECT COALESCE(sum(total - paid_total), 0) FROM invoices WHERE status = 'issued' AND paid_total < total) AS outstanding,
+                   (SELECT count(*) FROM approval_requests WHERE status = 'pending') AS pending_approvals,
+                   (SELECT count(*) FROM refunds WHERE status = 'approved') AS refunds_to_pay
+            """
+        ).fetchone()
+        if "billing.collect" in ctx.permissions:
+            from app.core.payments import my_shift
+
+            summary["billing"]["shift"] = my_shift(conn, ctx)
     return summary

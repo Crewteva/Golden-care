@@ -6,7 +6,7 @@ import psycopg
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import FileResponse
 
-from app.core import complaints, dental, files, visits
+from app.core import billing, complaints, dental, files, payments, visits
 from app.core.appointment_schemas import PortalBookIn, PortalCancelIn
 from app.core.clinical_schemas import PortalTicketIn, ReasonIn
 from app.core.session import Ctx, require_role, set_session_cookie
@@ -101,6 +101,21 @@ def accept_plan(plan_id: UUID, ctx: Ctx = Depends(is_patient), conn: psycopg.Con
 def decline_plan(plan_id: UUID, body: ReasonIn, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
     dental.decline(conn, plan_id, body.reason, ctx=ctx, via="portal", patient_ids=service.my_patient_ids(conn, ctx))
     return dental.portal_plans(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.get("/billing")
+def my_bills(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    """My invoices, receipts, installments, packages and credit — for me and my children."""
+    return billing.portal(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.get("/billing/receipts/{receipt_id}")
+def my_receipt(receipt_id: UUID, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    row = payments.receipt(conn, receipt_id, service.my_patient_ids(conn, ctx))
+    row.pop("received_by", None)
+    row.pop("shift_id", None)
+    row.pop("shift_ref", None)
+    return row
 
 
 @router.get("/requests")

@@ -6,6 +6,7 @@ from app.core.session import Ctx, ready_ctx
 from app.core.appointments_api import router as appointments_router
 from app.core.settings_api import router as settings_router
 from app.core.complaints_api import router as complaints_router
+from app.core.billing_api import router as billing_router
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
@@ -17,6 +18,8 @@ router.include_router(settings_router)
 router.include_router(appointments_router)
 # /api/cashier/complaints (logging complaints & requests)
 router.include_router(complaints_router)
+# /api/cashier/billing/... (invoices, payments, the cash shift, refunds)
+router.include_router(billing_router)
 
 
 @router.get("/home")

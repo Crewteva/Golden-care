@@ -9,6 +9,7 @@ from app.core.settings_api import router as settings_router
 from app.core.visits_api import router as visits_router
 from app.core.dental_api import router as dental_router
 from app.core.complaints_api import router as complaints_router
+from app.core.billing_api import router as billing_router
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
@@ -25,6 +26,8 @@ router.include_router(visits_router)
 # /api/reception/dental, /complaints (patient acceptance of plans, lab work tracking; the complaints desk)
 router.include_router(dental_router)
 router.include_router(complaints_router)
+# /api/reception/billing/... (read: invoices, what a patient owes, installments due)
+router.include_router(billing_router)
 
 
 @router.get("/home")

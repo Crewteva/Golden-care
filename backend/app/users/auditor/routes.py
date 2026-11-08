@@ -5,11 +5,15 @@ import psycopg
 from fastapi import Depends, Query
 
 from app.core import audit
+from app.core.billing_api import router as billing_router
 from app.core.session import Ctx, ready_ctx, require_permission
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
 router = role_router("auditor")
+
+# /api/auditor/billing/... (read: invoices, receipts, shifts, refunds)
+router.include_router(billing_router)
 
 
 @router.get("/home")
