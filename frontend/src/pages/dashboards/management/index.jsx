@@ -5,12 +5,16 @@ import Doctors from '../../../components/settings/Doctors'
 import DoctorSetup from '../../../components/settings/DoctorSetup'
 import LeaveHolidays from '../../../components/settings/LeaveHolidays'
 import WeekView from '../../../components/settings/WeekView'
+import Calendar from '../../../components/appointments/Calendar'
+import BookingRules from '../../../components/settings/BookingRules'
 
 // Management (owner / general manager): the business side of the clinic.
 export default {
   role: 'management',
   pages: [
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
+    { path: 'calendar', icon: 'calendar', label: { ar: 'التقويم', en: 'Calendar' }, element: <Calendar />, permission: 'appointments.view' },
+    { path: 'booking-rules', icon: 'shield', label: { ar: 'قواعد الحجز', en: 'Booking rules' }, element: <BookingRules />, permission: 'settings.view' },
     { path: 'services', icon: 'clipboard', label: { ar: 'الخدمات والأسعار', en: 'Services & prices' }, element: <Catalog />, permission: 'settings.view' },
     { path: 'doctors', icon: 'stethoscope', label: { ar: 'الأطباء والجداول', en: 'Doctors & schedules' }, element: <Doctors />, permission: 'settings.view' },
     { path: 'doctors/:id', nav: false, element: <DoctorSetup />, permission: 'settings.view' },

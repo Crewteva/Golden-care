@@ -71,6 +71,12 @@ export const ACTIONS = {
   'settings.holiday_added': { ar: 'إضافة عطلة', en: 'Holiday added', icon: 'calendar' },
   'settings.holiday_updated': { ar: 'تعديل عطلة', en: 'Holiday edited', icon: 'calendar' },
   'settings.holiday_deleted': { ar: 'حذف عطلة', en: 'Holiday deleted', icon: 'calendar' },
+  'settings.booking_rules_updated': { ar: 'تعديل قواعد الحجز', en: 'Booking rules changed', icon: 'calendar' },
+  'appointment.booked': { ar: 'حجز موعد', en: 'Appointment booked', tone: 'good', icon: 'calendar' },
+  'appointment.rescheduled': { ar: 'تغيير موعد', en: 'Appointment moved', icon: 'calendar' },
+  'appointment.cancelled': { ar: 'إلغاء موعد', en: 'Appointment cancelled', tone: 'warn', icon: 'calendar' },
+  'appointment.no_show': { ar: 'لم يحضر للموعد', en: 'No-show', tone: 'warn', icon: 'calendar' },
+  'appointment.completed': { ar: 'انتهاء زيارة', en: 'Visit finished', tone: 'good', icon: 'checkCircle' },
   'system.first_admin': { ar: 'إنشاء أول مدير نظام', en: 'First admin created', icon: 'shield' },
 }
 
@@ -84,6 +90,7 @@ export const CATEGORIES = [
   { value: 'patient', ar: 'ملفات المرضى', en: 'Patient files' },
   { value: 'patient_file', ar: 'المستندات الطبية', en: 'Patient documents' },
   { value: 'settings', ar: 'إعداد العيادة', en: 'Clinic setup' },
+  { value: 'appointment', ar: 'المواعيد', en: 'Appointments' },
 ]
 
 export function actionMeta(action) {

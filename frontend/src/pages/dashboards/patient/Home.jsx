@@ -6,20 +6,22 @@ import { useAsync } from '../../../components/useAsync'
 import { patientApi } from '../../../api/patient'
 import { useI18n } from '../../../i18n/I18nContext'
 import { fmtDate, fmtPhone } from '../../../lib/format'
+import { clock, dayKey, dayLabel } from '../../../lib/clinicTime'
 
 const COMING = [
-  { icon: 'calendar', ar: 'حجز المواعيد أونلاين', en: 'Book appointments online', note: { ar: 'من المواعيد المتاحة فعليًا لكل طبيب', en: "From each doctor's real availability" } },
-  { icon: 'clock', ar: 'مواعيدي القادمة والسابقة', en: 'My upcoming & past visits', note: { ar: 'مع إمكانية الإلغاء والتقييم', en: 'Cancel or rate a visit' } },
   { icon: 'fileSearch', ar: 'الوصفات الطبية', en: 'Prescriptions', note: { ar: 'مطبوعة ومتاحة في حسابك', en: 'Printable, in your account' } },
   { icon: 'cash', ar: 'الفواتير والدفع أونلاين', en: 'Invoices & online payment', note: { ar: 'بطاقة أو محفظة', en: 'Card or wallet' } },
-  { icon: 'users', ar: 'مواعيد العائلة', en: 'Family appointments', note: { ar: 'احجز لأبنائك من حسابك', en: 'Book for your children from your account' } },
   { icon: 'headphones', ar: 'الشكاوى والطلبات', en: 'Complaints & requests', note: { ar: 'متابعة حتى الحل', en: 'Followed until resolved' } },
 ]
 
 export default function PatientHome() {
-  const { tx, lang, locale } = useI18n()
+  const { tx, lang, locale, pick } = useI18n()
   const { data, error, reload } = useAsync(() => patientApi.home(), [])
+  const visits = useAsync(() => patientApi.appointments(), [])
   const p = data?.profile
+  const next = (visits.data?.items || [])
+    .filter((a) => ['requested', 'booked', 'confirmed', 'arrived'].includes(a.status) && new Date(a.ends_at) > new Date())
+    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0]
 
   return (
     <div className="page reveal">
@@ -34,6 +36,31 @@ export default function PatientHome() {
         )}
       </Welcome>
       {error && <ErrorState error={error} onRetry={reload} />}
+
+      <section className="card next-visit">
+        {next ? (
+          <div className="row-between" style={{ padding: 20 }}>
+            <div className="person">
+              <span className="done-icon" style={{ width: 52, height: 52, borderRadius: 16, background: 'var(--gold-100)', color: 'var(--gold-700)' }}>
+                <Icon name="calendar" size={24} />
+              </span>
+              <div>
+                <small className="muted">{tx('موعدك القادم', 'Your next visit')}</small>
+                <strong style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}>
+                  {dayLabel(dayKey(next.starts_at), locale)} · <span className="num">{clock(next.starts_at, locale)}</span>
+                </strong>
+                <small className="muted">{pick(next, 'doctor_name')} · {next.services.map((s) => pick(s)).join(' + ')}</small>
+              </div>
+            </div>
+            <Link to="/dashboard/patient/appointments" className="btn btn-ghost">{tx('مواعيدي', 'My appointments')}</Link>
+          </div>
+        ) : (
+          <div className="row-between" style={{ padding: 20 }}>
+            <span className="muted">{tx('لا يوجد لديك موعد قادم.', 'You have no upcoming visit.')}</span>
+            {visits.data?.rules?.portal_enabled && <Link to="/dashboard/patient/book" className="btn btn-gold"><Icon name="plus" size={18} />{tx('احجز موعدًا', 'Book a visit')}</Link>}
+          </div>
+        )}
+      </section>
 
       <div className="split">
         <section className="card">

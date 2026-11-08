@@ -7,11 +7,13 @@ import DoctorSetup from '../../../components/settings/DoctorSetup'
 import WeekView from '../../../components/settings/WeekView'
 import LeaveHolidays from '../../../components/settings/LeaveHolidays'
 import Catalog from '../../../components/settings/Catalog'
+import Calendar from '../../../components/appointments/Calendar'
 
 export default {
   role: 'medical_director',
   pages: [
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
+    { path: 'calendar', icon: 'calendar', label: { ar: 'التقويم', en: 'Calendar' }, element: <Calendar />, permission: 'appointments.view' },
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
     { path: 'review', icon: 'clipboard', label: { ar: 'بانتظار المراجعة', en: 'Awaiting review' }, element: <ReviewQueue />, permission: 'patient_files.review' },
     { path: 'doctors', icon: 'stethoscope', label: { ar: 'الأطباء والجداول', en: 'Doctors & schedules' }, element: <Doctors />, permission: 'settings.view' },

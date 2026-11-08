@@ -13,6 +13,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import { actionMeta } from '../../lib/activity'
 import { errorText, fieldErrors } from '../../lib/errors'
 import { fmtDate, fmtDateTime, fmtPhone } from '../../lib/format'
+import PatientAppointments from '../appointments/PatientAppointments'
 import AlertsStrip from './AlertsStrip'
 import Documents from './Documents'
 import FamilyCard from './FamilyCard'
@@ -197,6 +198,7 @@ export default function PatientFile() {
   const canSeeDocs = can('patient_files.view_admin') || can('patient_files.view_clinical')
   const tabs = [
     ['overview', tx('نظرة عامة', 'Overview')],
+    ...(can('appointments.view') ? [['appointments', tx('المواعيد', 'Appointments')]] : []),
     ...(canSeeDocs ? [['documents', tx('المستندات', 'Documents'), data.counts.documents, data.counts.pending_review]] : []),
     ['history', tx('السجل', 'History')],
   ]
@@ -219,6 +221,9 @@ export default function PatientFile() {
           </div>
         </div>
         <div className="page-actions">
+          {can('appointments.book') && (
+            <Link to={`${patientsBase.replace(/\/patients$/, '')}/book?patient=${p.id}`} className="btn btn-gold"><Icon name="calendar" size={18} />{tx('حجز موعد', 'Book appointment')}</Link>
+          )}
           {can('patients.edit') && <Button variant="ghost" icon="edit" onClick={() => setEditing(true)}>{tx('تعديل البيانات', 'Edit details')}</Button>}
         </div>
       </header>
@@ -282,6 +287,7 @@ export default function PatientFile() {
           </div>
         </div>
       )}
+      {tab === 'appointments' && <PatientAppointments patientId={p.id} />}
       {tab === 'documents' && <Documents patientId={p.id} onCounts={reload} />}
       {tab === 'history' && <History patientId={p.id} />}
 

@@ -4,9 +4,9 @@ import QuickSearch from '../../../components/patients/QuickSearch'
 
 // Still to come in this workspace (from the project to-do list).
 const UPCOMING = [
-  { icon: 'calendar', ar: 'حجز المواعيد', en: "Book appointments", note: { ar: 'بدون تعارض للطبيب أو الغرفة', en: "No doctor or room double-booking" } },
-  { icon: 'clock', ar: 'الوصول وأرقام الدور', en: "Check-in & queue numbers", note: { ar: 'من الوصول حتى الدخول للطبيب', en: "From arrival to the doctor" } },
-  { icon: 'bell', ar: 'قائمة اليوم', en: "Today's list", note: { ar: 'من حضر ومن تأخر', en: "Who arrived, who is late" } },
+  { icon: 'cash', ar: 'تحصيل الفواتير عند الوصول', en: 'Collect payment at check-in', note: { ar: 'من قائمة الأسعار مباشرة', en: 'Straight from the price list' } },
+  { icon: 'smartphone', ar: 'تذكير المرضى بالواتساب', en: 'WhatsApp reminders', note: { ar: 'تأكيد وتذكير تلقائي', en: 'Automatic confirmation and reminders' } },
+  { icon: 'headphones', ar: 'مكتب الشكاوى والطلبات', en: 'Complaints & requests desk', note: { ar: 'متابعة حتى الحل', en: 'Followed until resolved' } },
 ]
 
 export default function Home() {
