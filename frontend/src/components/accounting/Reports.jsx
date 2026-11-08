@@ -288,7 +288,7 @@ function ReportTable({ v, locale, tx }) {
         <p className="muted report-empty">{tx('لا توجد بيانات في هذه الفترة.', 'Nothing in this period.')}</p>
       ) : (
         <div className="table-wrap">
-          <table className="table report-table">
+          <table className="table acc-table report-table">
             <thead><tr>{v.cols.map((c, i) => <th key={i} className={c.num ? 'num' : ''}>{c.label}</th>)}</tr></thead>
             <tbody>
               {v.head && <tr className="row-muted"><td colSpan={v.cols.length - 1}>{v.head[0]}</td><td className="num">{money(v.head[1], locale)}</td></tr>}

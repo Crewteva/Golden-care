@@ -67,7 +67,7 @@ function Doctors() {
           <EmptyState icon="stethoscope" title={tx(`لا مستحقات للأطباء في ${monthLabel(month, locale)}`, `No doctor shares in ${monthLabel(month, locale)}`)}>{tx('تظهر الحصص هنا عندما تصدر فواتير بها خدمات لها نسبة طبيب.', 'Shares show here once invoices with doctor-share services are issued.')}</EmptyState>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table acc-table">
               <thead><tr><th>{tx('الطبيب', 'Doctor')}</th><th className="num">{tx('الحصص', 'Shares')}</th><th className="num">{tx('خصم المعامل', 'Lab deduction')}</th><th className="num">{tx('الصافي', 'Net')}</th><th>{tx('الكشف', 'Statement')}</th><th><span className="sr-only">{tx('إجراء', 'Action')}</span></th></tr></thead>
               <tbody>
                 {data.due.map((d) => {
@@ -119,7 +119,7 @@ function StatementSummary({ st }) {
   return (
     <>
       {st.by_service.length > 0 && (
-        <table className="table compact-table">
+        <table className="table acc-table compact-table">
           <thead><tr><th>{tx('الخدمة', 'Service')}</th><th className="num">{tx('العدد', 'Count')}</th><th className="num">{tx('الحصة', 'Share')}</th></tr></thead>
           <tbody>{st.by_service.map((s) => <tr key={s.service_name_en}><td>{pick(s, 'service_name')}</td><td className="num">{s.count}</td><td className="num">{money(s.share, locale)}</td></tr>)}</tbody>
         </table>
@@ -287,7 +287,7 @@ export function PayoutPage() {
         )}
         <section className="st-sec">
           <h2>{tx('حسب الخدمة', 'By service')}</h2>
-          <table className="table compact-table">
+          <table className="table acc-table compact-table">
             <thead><tr><th>{tx('الخدمة', 'Service')}</th><th className="num">{tx('العدد', 'Count')}</th><th className="num">{tx('الحصة', 'Share')}</th></tr></thead>
             <tbody>{st.by_service.map((s) => <tr key={s.service_name_en}><td>{pick(s, 'service_name')}</td><td className="num">{s.count}</td><td className="num">{money(s.share, locale)}</td></tr>)}</tbody>
           </table>
@@ -295,7 +295,7 @@ export function PayoutPage() {
         {st.labs.length > 0 && (
           <section className="st-sec">
             <h2>{tx('حالات المعمل', 'Lab cases')}</h2>
-            <table className="table compact-table">
+            <table className="table acc-table compact-table">
               <thead><tr><th>{tx('الحالة', 'Case')}</th><th>{tx('المريض', 'Patient')}</th><th>{tx('المعمل', 'Lab')}</th><th className="num">{tx('التكلفة', 'Cost')}</th><th className="num">{tx('نصيب الطبيب', "Doctor's part")}</th></tr></thead>
               <tbody>{st.labs.map((c) => <tr key={c.id}><td className="mrn">{c.ref}</td><td>{pick(c, 'full_name')}</td><td>{c.lab_name}</td><td className="num">{money(c.lab_cost, locale)}</td><td className="num">{num(c.doctor_share_pct)}% · {money(c.deduction, locale)}</td></tr>)}</tbody>
             </table>
@@ -304,7 +304,7 @@ export function PayoutPage() {
         <section className="st-sec">
           <h2>{tx(`الفواتير (${st.lines.length})`, `Invoices (${st.lines.length})`)}</h2>
           <div className="table-wrap">
-            <table className="table compact-table">
+            <table className="table acc-table compact-table">
               <thead><tr><th>{tx('التاريخ', 'Date')}</th><th>{tx('الفاتورة', 'Invoice')}</th><th>{tx('الخدمة', 'Service')}</th><th className="num">{tx('الحصة', 'Share')}</th></tr></thead>
               <tbody>{st.lines.map((l, i) => (
                 <tr key={i} className={l.source_type === 'invoice_void' ? 'refund-row' : ''}>
@@ -345,7 +345,7 @@ function Labs() {
           <EmptyState icon="layers" title={tx('لا توجد معامل', 'No labs')}>{tx('تظهر المعامل هنا عند تسجيل حالات معمل.', 'Labs show here once lab cases are recorded.')}</EmptyState>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table acc-table">
               <thead><tr><th>{tx('المعمل', 'Lab')}</th><th className="num">{tx('الحالات المستلمة', 'Cases received')}</th><th className="num">{tx('التكلفة', 'Cost')}</th><th className="num">{tx('المدفوع', 'Paid')}</th><th className="num">{tx('المتبقي', 'Owed')}</th><th><span className="sr-only">{tx('إجراء', 'Action')}</span></th></tr></thead>
               <tbody>
                 {data.labs.map((l) => (
@@ -367,7 +367,7 @@ function Labs() {
         <section className="card">
           <div className="card-head"><h2>{tx('المدفوعات للمعامل', 'Payments to labs')}</h2></div>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table acc-table">
               <thead><tr><th>{tx('الرقم', 'No.')}</th><th>{tx('التاريخ', 'Date')}</th><th>{tx('المعمل', 'Lab')}</th><th>{tx('من', 'From')}</th><th className="num">{tx('المبلغ', 'Amount')}</th></tr></thead>
               <tbody>{data.payments.map((p) => (
                 <tr key={p.ref}>

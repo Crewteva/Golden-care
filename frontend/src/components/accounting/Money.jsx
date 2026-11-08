@@ -74,7 +74,7 @@ export default function Money() {
           <EmptyState icon="swap" title={tx('لا تحويلات بعد', 'No transfers yet')}>{tx('إيداع النقدية في البنك، تعبئة العهدة النثرية، وتسويات البطاقات تظهر هنا.', 'Cash deposits, petty cash top-ups and card settlements show here.')}</EmptyState>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table acc-table">
               <thead><tr><th>{tx('الرقم', 'No.')}</th><th>{tx('التاريخ', 'Date')}</th><th>{tx('من ← إلى', 'From → to')}</th><th>{tx('المرجع', 'Reference')}</th><th className="num">{tx('المبلغ', 'Amount')}</th><th className="num">{tx('العمولة', 'Fee')}</th></tr></thead>
               <tbody>
                 {transfers.data.map((r) => (
@@ -156,7 +156,7 @@ function Settle({ data, options, canPost, onDone }) {
       ) : (
         <div className="settle-grid">
           <div className="table-wrap">
-            <table className="table">
+            <table className="table acc-table">
               <thead><tr>
                 <th className="chk">{canPost && <input type="checkbox" aria-label={tx('تحديد الكل', 'Select all')} checked={all} onChange={() => setPicked(all ? new Set() : new Set(items.map((p) => p.id)))} />}</th>
                 <th>{tx('الإيصال', 'Receipt')}</th><th>{tx('المريض', 'Patient')}</th><th>{tx('رقم العملية', 'Transaction')}</th><th className="num">{tx('المبلغ', 'Amount')}</th>

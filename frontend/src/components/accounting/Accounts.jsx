@@ -43,7 +43,7 @@ export default function Accounts() {
         </div>
         {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows rows={8} cols={4} /> : (
           <div className="table-wrap">
-            <table className="table coa-table">
+            <table className="table acc-table coa-table">
               <thead><tr><th>{tx('الرقم', 'Code')}</th><th>{tx('الحساب', 'Account')}</th><th className="num">{tx('الحركات', 'Lines')}</th><th className="num">{tx('الرصيد', 'Balance')}</th><th><span className="sr-only">{tx('إجراء', 'Action')}</span></th></tr></thead>
               {groups.map((g) => (
                 <tbody key={g.type}>

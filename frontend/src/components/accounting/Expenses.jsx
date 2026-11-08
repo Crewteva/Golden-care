@@ -74,7 +74,7 @@ export default function Expenses() {
         ) : (
           <>
             <div className="table-wrap">
-              <table className="table">
+              <table className="table acc-table">
                 <thead><tr><th>{tx('المصروف', 'Expense')}</th><th>{tx('التاريخ', 'Date')}</th><th>{tx('البند والجهة', 'Category & payee')}</th><th>{tx('دُفع من', 'Paid from')}</th><th className="num">{tx('المبلغ', 'Amount')}</th><th>{tx('الحالة', 'Status')}</th><th><span className="sr-only">{tx('إجراء', 'Action')}</span></th></tr></thead>
                 <tbody>
                   {data.items.map((x) => (

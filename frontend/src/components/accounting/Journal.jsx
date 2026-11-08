@@ -53,7 +53,7 @@ export default function Journal() {
         ) : (
           <>
             <div className="table-wrap">
-              <table className="table jr-table">
+              <table className="table acc-table jr-table">
                 <thead><tr>
                   <th>{tx('القيد', 'Entry')}</th><th>{tx('التاريخ', 'Date')}</th><th>{tx('البيان', 'Memo')}</th>
                   <th>{tx('الحسابات', 'Accounts')}</th><th className="num">{tx('المبلغ', 'Amount')}</th>
@@ -207,7 +207,7 @@ export function EntryPage() {
           </div>
         )}
         <div className="table-wrap">
-          <table className="table entry-table">
+          <table className="table acc-table entry-table">
             <thead><tr><th>{tx('الحساب', 'Account')}</th><th>{tx('التفاصيل', 'Details')}</th><th className="num">{tx('مدين', 'Debit')}</th><th className="num">{tx('دائن', 'Credit')}</th></tr></thead>
             <tbody>
               {e.lines.map((l, i) => (
