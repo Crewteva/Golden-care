@@ -23,7 +23,8 @@ SELECT = """
            COALESCE(dp.color, sp.color) AS doctor_color,
            r.name_ar AS room_name_ar, r.name_en AS room_name_en, b.name_ar AS branch_name_ar, b.name_en AS branch_name_en,
            COALESCE((SELECT json_agg(json_build_object('service_id', s.id, 'code', s.code, 'name_ar', s.name_ar, 'name_en', s.name_en,
-                                                       'duration_min', x.duration_min, 'price', x.price) ORDER BY x.position)
+                                                       'duration_min', x.duration_min, 'price', x.price,
+                                                       'clinical_record', s.clinical_record) ORDER BY x.position)
                      FROM appointment_services x JOIN services s ON s.id = x.service_id WHERE x.appointment_id = a.id), '[]') AS services,
            EXISTS (SELECT 1 FROM patient_alerts al WHERE al.patient_id = a.patient_id AND al.removed_at IS NULL
                    AND al.severity = 'critical') AS critical_alert,

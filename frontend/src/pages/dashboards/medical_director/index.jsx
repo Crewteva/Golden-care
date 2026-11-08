@@ -12,6 +12,11 @@ import VisitWorkspace from '../../../components/visits/VisitWorkspace'
 import VisitList from '../../../components/visits/VisitList'
 import ClinicalLists from '../../../components/visits/ClinicalLists'
 import RxPrint from '../../../components/visits/RxSheet'
+import LaserSession from '../../../components/laser/LaserSession'
+import PlansList from '../../../components/dental/PlansList'
+import PlanPage from '../../../components/dental/PlanPage'
+import QuotationPrint from '../../../components/dental/Quotation'
+import LabCases from '../../../components/dental/LabCases'
 
 export default {
   role: 'medical_director',
@@ -19,16 +24,21 @@ export default {
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     { path: 'calendar', icon: 'calendar', label: { ar: 'التقويم', en: 'Calendar' }, element: <Calendar />, permission: 'appointments.view' },
     { path: 'visits', icon: 'pen', label: { ar: 'الزيارات', en: 'Visits' }, element: <VisitList />, permission: 'visits.view_all' },
+    { path: 'plans', icon: 'clipboard', label: { ar: 'خطط علاج الأسنان', en: 'Dental plans' }, element: <PlansList />, permission: 'visits.view_all' },
+    { path: 'lab-cases', icon: 'package', label: { ar: 'أعمال المعمل', en: 'Lab work' }, element: <LabCases />, permission: 'visits.view_all' },
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
-    { path: 'review', icon: 'clipboard', label: { ar: 'بانتظار المراجعة', en: 'Awaiting review' }, element: <ReviewQueue />, permission: 'patient_files.review' },
-    { path: 'clinical-lists', icon: 'pill', label: { ar: 'الأدوية والتشخيصات', en: 'Drugs & diagnoses' }, element: <ClinicalLists />, permission: 'clinical_lists.manage' },
+    { path: 'review', icon: 'fileSearch', label: { ar: 'بانتظار المراجعة', en: 'Awaiting review' }, element: <ReviewQueue />, permission: 'patient_files.review' },
+    { path: 'clinical-lists', icon: 'pill', label: { ar: 'القوائم الطبية', en: 'Clinical lists' }, element: <ClinicalLists />, permission: 'clinical_lists.manage' },
     { path: 'doctors', icon: 'stethoscope', label: { ar: 'الأطباء والجداول', en: 'Doctors & schedules' }, element: <Doctors />, permission: 'settings.view' },
     { path: 'doctors/:id', nav: false, element: <DoctorSetup />, permission: 'settings.view' },
     { path: 'schedules', icon: 'clock', label: { ar: 'جدول الأسبوع', en: 'Week view' }, element: <WeekView />, permission: 'settings.view' },
     { path: 'leave', icon: 'calendar', label: { ar: 'الإجازات والعطلات', en: 'Leave & holidays' }, element: <LeaveHolidays />, permission: 'settings.view' },
-    { path: 'services', icon: 'clipboard', label: { ar: 'التخصصات والخدمات', en: 'Specialties & services' }, element: <Catalog />, permission: 'settings.view' },
+    { path: 'services', icon: 'layers', label: { ar: 'التخصصات والخدمات', en: 'Specialties & services' }, element: <Catalog />, permission: 'settings.view' },
     { path: 'patients/:id', nav: false, element: <PatientFile />, permission: 'patients.view' },
     { path: 'visits/:id', nav: false, element: <VisitWorkspace />, permission: 'visits.view_all' },
     { path: 'visits/:id/print', nav: false, element: <RxPrint />, permission: 'visits.view_all' },
+    { path: 'laser/:id', nav: false, element: <LaserSession />, permission: 'visits.view_all' },
+    { path: 'plans/:id', nav: false, element: <PlanPage />, permission: 'visits.view_all' },
+    { path: 'plans/:id/print', nav: false, element: <QuotationPrint />, permission: 'visits.view_all' },
   ],
 }

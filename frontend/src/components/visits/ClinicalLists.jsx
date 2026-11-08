@@ -10,6 +10,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import { errorText, fieldErrors } from '../../lib/errors'
 import { ConfirmDelete, useSettings } from '../settings/shared'
 import { FORMS, useVisits } from './meta'
+import { DevicesTab, LabsTab } from '../clinical/DevicesLabs'
 
 const NEW_DRUG = { name: '', generic_name: '', form: 'tablet', strength: '', default_dose: '', default_frequency: '', default_duration: '', restricted: false, allergy_tags: '', is_active: true }
 
@@ -137,21 +138,26 @@ export default function ClinicalLists() {
 
   return (
     <div className="page reveal">
-      <PageHeader eyebrow={tx('العمل الطبي', 'Clinical work')} title={tx('الأدوية والتشخيصات', 'Drugs & diagnoses')}
-        description={tx('القوائم التي يختار منها الأطباء. القائمة الحالية مبدئية للتجربة؛ عدّلها حسب العيادة.', 'The lists doctors pick from. The current lists are a starter set for the demo; adjust them to the clinic.')}
-        actions={manage && <Button icon="plus" onClick={() => setEditing({})}>{tab === 'drugs' ? tx('إضافة دواء', 'Add drug') : tx('إضافة تشخيص', 'Add diagnosis')}</Button>} />
+      <PageHeader eyebrow={tx('العمل الطبي', 'Clinical work')} title={tx('القوائم الطبية', 'Clinical lists')}
+        description={tx('الأدوية والتشخيصات التي يختار منها الأطباء، وأجهزة الليزر ومعامل الأسنان. القوائم الحالية مبدئية للتجربة؛ عدّلها حسب العيادة.',
+          'The drugs and diagnoses doctors pick from, the laser devices and the dental labs. The current lists are a starter set for the demo; adjust them to the clinic.')}
+        actions={manage && ['drugs', 'dx'].includes(tab) && <Button icon="plus" onClick={() => setEditing({})}>{tab === 'drugs' ? tx('إضافة دواء', 'Add drug') : tx('إضافة تشخيص', 'Add diagnosis')}</Button>} />
       <section className="card">
         <div className="toolbar" style={{ justifyContent: 'space-between' }}>
           <div className="tabs" role="tablist">
             <button type="button" role="tab" aria-selected={tab === 'drugs'} onClick={() => setTab('drugs')}><Icon name="pill" size={16} /> {tx('الأدوية', 'Drugs')}</button>
             <button type="button" role="tab" aria-selected={tab === 'dx'} onClick={() => setTab('dx')}><Icon name="clipboard" size={16} /> {tx('التشخيصات', 'Diagnoses')}</button>
+            <button type="button" role="tab" aria-selected={tab === 'devices'} onClick={() => setTab('devices')}><Icon name="activity" size={16} /> {tx('أجهزة الليزر', 'Laser devices')}</button>
+            <button type="button" role="tab" aria-selected={tab === 'labs'} onClick={() => setTab('labs')}><Icon name="package" size={16} /> {tx('معامل الأسنان', 'Dental labs')}</button>
           </div>
-          <div className="input-wrap" style={{ minWidth: 240 }}>
-            <span className="input-start"><Icon name="search" size={18} /></span>
-            <input className="input has-start" value={q} onChange={(e) => setQ(e.target.value)} aria-label={tx('بحث', 'Search')} placeholder={tx('بحث…', 'Search…')} />
-          </div>
+          {['drugs', 'dx'].includes(tab) && (
+            <div className="input-wrap" style={{ minWidth: 240 }}>
+              <span className="input-start"><Icon name="search" size={18} /></span>
+              <input className="input has-start" value={q} onChange={(e) => setQ(e.target.value)} aria-label={tx('بحث', 'Search')} placeholder={tx('بحث…', 'Search…')} />
+            </div>
+          )}
         </div>
-        {current.error ? <ErrorState error={current.error} onRetry={current.reload} /> : !current.data ? <SkeletonRows rows={8} cols={4} /> : !current.data.length ? (
+        {tab === 'devices' ? <DevicesTab /> : tab === 'labs' ? <LabsTab /> : current.error ? <ErrorState error={current.error} onRetry={current.reload} /> : !current.data ? <SkeletonRows rows={8} cols={4} /> : !current.data.length ? (
           <EmptyState icon="search" title={tx('لا نتائج', 'No results')} />
         ) : tab === 'drugs' ? (
           <div className="table-wrap">

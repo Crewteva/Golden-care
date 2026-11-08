@@ -223,8 +223,9 @@ def _plans(conn, dentist, patients, services) -> dict:
                 (accepted, dentist, accepted, plan["id"]),
             )
             for row in schedule(total, Decimal(down), count, accepted.date()):
-                conn.execute("INSERT INTO treatment_plan_installments (plan_id, seq, due_on, amount, status) VALUES (%s, %s, %s, %s, %s)",
-                             (plan["id"], row["seq"], row["due_on"], row["amount"], "paid" if row["due_on"] <= today and row["seq"] == 0 else "scheduled"))
+                # payments are recorded by billing (requirement 5); until then every installment is just scheduled
+                conn.execute("INSERT INTO treatment_plan_installments (plan_id, seq, due_on, amount) VALUES (%s, %s, %s, %s)",
+                             (plan["id"], row["seq"], row["due_on"], row["amount"]))
             for index, days_ago in done:
                 item_id = item_ids[index]
                 item = conn.execute("SELECT * FROM treatment_plan_items WHERE id = %s", (item_id,)).fetchone()
