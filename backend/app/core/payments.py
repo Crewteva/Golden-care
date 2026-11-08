@@ -242,7 +242,7 @@ def request_refund(conn: psycopg.Connection, ctx: Ctx, body: RefundIn) -> dict:
     row = conn.execute(
         """
         INSERT INTO refunds (patient_id, amount, method, reason, status, requested_by, decided_by, decided_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, CASE WHEN %s THEN now() END) RETURNING id, ref
+        VALUES (%s, %s, %s, %s, %s, %s, %s, CASE WHEN %s THEN now() END) RETURNING id, ref, status, amount
         """,
         (body.patient_id, q(body.amount), body.method, body.reason.strip(), "approved" if approved else "requested", ctx.user_id,
          ctx.user_id if approved else None, approved),

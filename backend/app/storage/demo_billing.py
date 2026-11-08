@@ -33,7 +33,7 @@ COSTS = {"DRM-BTX": 1200, "DRM-FILL": 2500, "DNT-ZRC": 1800, "DRM-PRP": 300}
 VAT = {"DNT-WHT": 14}           # a cosmetic service with VAT, to show it on invoices
 CASHIER_PERMS = {"billing.view", "billing.invoice", "billing.collect", "billing.discount"}
 LOCKS = [("invoices", "invoices_lock"), ("receipts", "receipts_append_only"), ("patient_credit", "patient_credit_append_only"),
-         ("cash_shifts", "cash_shifts_lock")]
+         ("cash_shifts", "cash_shifts_lock"), ("invoice_installments", "invoice_installments_lock")]
 
 
 def _actor(user_id, label: str, permissions: set, role: str, branch_id) -> SimpleNamespace:
@@ -179,6 +179,7 @@ def _move_back(conn: psycopg.Connection, moves: list) -> None:
         conn.execute("UPDATE invoices SET created_at = %s, issued_at = CASE WHEN issued_at IS NULL THEN NULL ELSE %s END, updated_at = %s WHERE id = %s",
                      (at, at, at, invoice_id))
         conn.execute("UPDATE approval_requests SET requested_at = %s WHERE invoice_id = %s", (at, invoice_id))
+        conn.execute("UPDATE invoice_installments SET due_on = %s::date WHERE invoice_id = %s AND seq = 0", (at, invoice_id))
         receipts = [r["id"] for r in conn.execute("SELECT id FROM receipts WHERE invoice_id = %s", (invoice_id,))]
         conn.execute("UPDATE receipts SET created_at = %s + interval '2 minutes' WHERE invoice_id = %s", (at, invoice_id))
         conn.execute("UPDATE patient_credit SET created_at = %s + interval '2 minutes' WHERE receipt_id = ANY(%s) OR invoice_id = %s",
