@@ -15,6 +15,8 @@ import { errorText, fieldErrors } from '../../lib/errors'
 import { fmtDate, fmtDateTime, fmtPhone } from '../../lib/format'
 import PatientAppointments from '../appointments/PatientAppointments'
 import { PatientVisits, PatientVitals } from '../visits/PatientVisits'
+import DentalTab from '../dental/DentalTab'
+import { PatientLaser } from '../laser/LaserToday'
 import AlertsStrip from './AlertsStrip'
 import Documents from './Documents'
 import FamilyCard from './FamilyCard'
@@ -201,6 +203,8 @@ export default function PatientFile() {
     ['overview', tx('نظرة عامة', 'Overview')],
     ...(can('visits.write') || can('visits.view_all') ? [['visits', tx('الزيارات', 'Visits')]] : []),
     ...(can('visits.vitals') || can('visits.view_all') ? [['vitals', tx('العلامات الحيوية', 'Vital signs')]] : []),
+    ...(['dental.chart', 'dental.plans', 'dental.plans_view', 'dental.lab', 'visits.view_all'].some((x) => can(x)) ? [['dental', tx('الأسنان', 'Dental')]] : []),
+    ...(can('laser.record') || can('visits.view_all') ? [['laser', tx('الليزر', 'Laser')]] : []),
     ...(can('appointments.view') ? [['appointments', tx('المواعيد', 'Appointments')]] : []),
     ...(canSeeDocs ? [['documents', tx('المستندات', 'Documents'), data.counts.documents, data.counts.pending_review]] : []),
     ['history', tx('السجل', 'History')],
@@ -292,6 +296,8 @@ export default function PatientFile() {
       )}
       {tab === 'visits' && <PatientVisits patientId={p.id} />}
       {tab === 'vitals' && <PatientVitals patientId={p.id} patientName={name} />}
+      {tab === 'dental' && <DentalTab patient={p} />}
+      {tab === 'laser' && <PatientLaser patientId={p.id} />}
       {tab === 'appointments' && <PatientAppointments patientId={p.id} />}
       {tab === 'documents' && <Documents patientId={p.id} onCounts={reload} />}
       {tab === 'history' && <History patientId={p.id} />}
