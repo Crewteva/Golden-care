@@ -1614,6 +1614,13 @@
   .st-head {
     flex-wrap: wrap;
     padding: 18px;
+    gap: 12px;
+  }
+  .st-head > div {
+    flex-basis: calc(100% - 60px);
+  }
+  .st-head h1 {
+    font-size: 1.25rem;
   }
   .st-figs {
     grid-template-columns: 1fr 1fr;

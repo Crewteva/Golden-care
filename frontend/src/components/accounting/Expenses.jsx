@@ -23,7 +23,7 @@ export default function Expenses() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [page, setPage] = useState(1)
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState(canPost && params.get('new') === '1')
   const [voiding, setVoiding] = useState(null)
   const term = useDebounced(q.trim(), 300)
   const query = { q: term, status, account_id: accountId, date_from: from, date_to: to, page }
@@ -100,7 +100,7 @@ export default function Expenses() {
           </>
         )}
       </section>
-      {adding && <ExpenseModal options={options.data} categories={categories} onClose={() => setAdding(false)} onDone={() => { setAdding(false); setPage(1); reload() }} />}
+      {adding && options.data && <ExpenseModal options={options.data} categories={categories} onClose={() => setAdding(false)} onDone={() => { setAdding(false); setPage(1); reload() }} />}
       {voiding && <VoidModal x={voiding} onClose={() => setVoiding(null)} onDone={() => { setVoiding(null); reload() }} />}
     </div>
   )

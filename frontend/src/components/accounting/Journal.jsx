@@ -22,7 +22,7 @@ export default function Journal() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [page, setPage] = useState(1)
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState(canPost && params.get('new') === '1')
   const term = useDebounced(q.trim(), 300)
   const query = { q: term, group, account_id: accountId, date_from: from, date_to: to, page }
   const { data, error, loading, reload } = useAsync(() => api.journal(query), [JSON.stringify(query), api])
@@ -86,7 +86,7 @@ export default function Journal() {
         )}
       </section>
       <p className="muted foot-note"><Icon name="info" size={14} />{tx('المدين يمينًا والدائن يسارًا في القيد؛ في القائمة: الحسابات المدينة باللون الأخضر والدائنة بالذهبي.', 'In the list, debited accounts are marked green and credited ones gold.')}</p>
-      {adding && <EntryModal options={options.data} onClose={() => setAdding(false)} onDone={() => { setAdding(false); setPage(1); reload() }} />}
+      {adding && options.data && <EntryModal options={options.data} onClose={() => setAdding(false)} onDone={() => { setAdding(false); setPage(1); reload() }} />}
     </div>
   )
 }
