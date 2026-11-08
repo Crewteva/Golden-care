@@ -6,13 +6,28 @@ and test cases with the expected result. A new section is added here each time a
 **Demo address:** https://golden-care-clinic.apps.crewteva.com
 Add `?lang=en` to any address to see it in English; the language switch is in the top bar.
 
-| # | Requirement | Status |
-|---|---|---|
-| 1 | Logins & permissions | ✅ Done |
-| 2 | Patient records | ✅ Done |
-| 3 | Clinic settings (specialties, services, prices, rooms, doctors, schedules, leave) | ✅ Done |
-| 4 | Appointments | ✅ Done |
-| 5 | — | Next |
+### The 11 requirements and where they stand
+
+| Req. | Requirement | Status | Guide section |
+|---|---|---|---|
+| 1 | Logins, permissions & security | ✅ Done | 1 |
+| 2 | Patient records | ✅ Done | 2 |
+| 3 | Reception & appointments | ✅ Appointments done · ⏳ complaints & requests desk · ⏳ message monitor (with req. 10) | 4 |
+| 4 | Doctor's work (clinical) | ⏳ Next | — |
+| 5 | Billing, payments & cashier | ⏳ | — |
+| 6 | Accounting & finance (built together with 5) | ⏳ | — |
+| 7 | Stock, purchasing & medical devices | ⏳ | — |
+| 8 | HR & salaries | ⏳ | — |
+| 9 | Public website & marketing | ⏳ | — |
+| 10 | Patient portal & automatic messages | ⏳ (portal basics done in 2 and 3) | — |
+| 11 | Management dashboard & settings | ✅ Clinic settings done · ⏳ executive dashboard (built last) | 3 |
+
+**Build order:** 1 + 2 → settings (11) → 3 → 4 → 5 + 6 → 7 → 9 + 10 → 8 → dashboard (11).
+
+**Needed from the clinic before some features go live:** WhatsApp Business account with approved templates ·
+phone-call provider · SMS provider · Paymob account · Tax Authority e-invoice credentials · social insurance
+rates and income-tax brackets · doctor tax rates · purchase approval limits and VAT rules · package refund
+policy · loyalty rules · end-of-service rules · KPI criteria.
 
 ---
 
