@@ -1,7 +1,8 @@
-"""/api/accountant: Accountant workspace: invoices, receipts and cashier shifts (read); the ledger comes with accounting."""
+"""/api/accountant: Accountant workspace: the books (journal, expenses, payouts, month closing, reports) and billing (read)."""
 import psycopg
 from fastapi import Depends
 
+from app.core.accounting_api import router as accounting_router
 from app.core.billing_api import router as billing_router
 from app.core.session import Ctx, ready_ctx
 from app.core.workspace import role_router, workspace_home
@@ -11,6 +12,8 @@ router = role_router("accountant")
 
 # /api/accountant/billing/... (read: invoices, receipts, shifts, refunds)
 router.include_router(billing_router)
+# /api/accountant/accounting/... (posts entries, expenses, transfers, payouts; asks for month closing)
+router.include_router(accounting_router)
 
 
 @router.get("/home")

@@ -1,10 +1,11 @@
-"""/api/auditor: read-only review of the activity log."""
+"""/api/auditor: read-only review of the activity log, billing and the books."""
 from datetime import date
 
 import psycopg
 from fastapi import Depends, Query
 
 from app.core import audit
+from app.core.accounting_api import router as accounting_router
 from app.core.billing_api import router as billing_router
 from app.core.session import Ctx, ready_ctx, require_permission
 from app.core.workspace import role_router, workspace_home
@@ -14,6 +15,8 @@ router = role_router("auditor")
 
 # /api/auditor/billing/... (read: invoices, receipts, shifts, refunds)
 router.include_router(billing_router)
+# /api/auditor/accounting/... (read: the books and every report)
+router.include_router(accounting_router)
 
 
 @router.get("/home")

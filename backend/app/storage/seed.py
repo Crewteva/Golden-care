@@ -76,6 +76,10 @@ PERMISSIONS = [
     ("billing.discount", "billing", "منح خصم في حدود المسموح", "Give discounts within the limit"),
     ("billing.approve", "billing", "اعتماد الخصومات والإلغاء والاسترداد", "Approve discounts, voids & refunds"),
     ("settings.billing", "settings", "إدارة الباقات ونسب الأطباء وقواعد الفوترة", "Manage packages, doctor shares & billing rules"),
+    ("accounting.view", "accounting", "عرض الحسابات والتقارير المالية", "View the books & financial reports"),
+    ("accounting.post", "accounting", "تسجيل القيود والمصروفات ومستحقات الأطباء", "Post entries, expenses & doctor payouts"),
+    ("accounting.approve", "accounting", "اعتماد مستحقات الأطباء وإقفال الشهر", "Approve doctor payouts & month closing"),
+    ("accounting.setup", "accounting", "إدارة دليل الحسابات", "Manage the chart of accounts"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -128,6 +132,10 @@ PERMISSION_DEFAULTS = {
     "billing.discount": ["cashier"],
     "billing.approve": ["management"],
     "settings.billing": ["management"],
+    "accounting.view": ["accountant", "management", "auditor"],
+    "accounting.post": ["accountant"],
+    "accounting.approve": ["management"],
+    "accounting.setup": ["accountant"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -159,6 +167,8 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_visits import seed_clinical_lists, seed_demo_visits
     from app.storage.demo_dental import seed_demo_complaints, seed_demo_dental
     from app.storage.demo_billing import seed_demo_billing
+    from app.storage.demo_accounting import seed_demo_accounting
+    from app.core.accounting import sync as post_to_journal
 
     with conn.transaction():
         _roles_and_permissions(conn)
@@ -174,6 +184,10 @@ def run_seed(conn: psycopg.Connection) -> None:
             seed_demo_dental(conn, branch_id)
             seed_demo_complaints(conn)
             seed_demo_billing(conn, branch_id)
+        # billing records not in the journal yet (all of them, the first time accounting starts)
+        post_to_journal(conn)
+        if settings.seed_demo:
+            seed_demo_accounting(conn, branch_id)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:
