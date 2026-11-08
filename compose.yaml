@@ -33,6 +33,7 @@ services:
       MFA_ISSUER: ${MFA_ISSUER:-Golden Care Clinics}
       API_DOCS: ${API_DOCS:-false}
       FILES_DIR: /data/files
+      DEV_LOGIN: "on"
     volumes:
       # patient documents: private, mounted only here (never into the web service)
       - patient-files:/data/files
