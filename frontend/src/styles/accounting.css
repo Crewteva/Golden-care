@@ -1369,6 +1369,14 @@
   padding-block: 8px;
   font-size: 0.86rem;
 }
+.report-table .cell-wrap {
+  display: block;
+  min-width: 200px;
+}
+.report-table td bdi,
+.acc-table td > bdi {
+  white-space: nowrap;
+}
 .report-table tfoot th,
 .report-table tfoot td {
   font-family: var(--font-display);
@@ -1491,7 +1499,7 @@
     position: static;
   }
 }
-@media (max-width: 860px) {
+@media (max-width: 1240px) {
   .report-layout {
     grid-template-columns: 1fr;
   }
@@ -1505,6 +1513,8 @@
     flex-shrink: 0;
     white-space: nowrap;
   }
+}
+@media (max-width: 860px) {
   .cat-card {
     grid-template-columns: 1fr;
   }
