@@ -8,14 +8,17 @@ which also forwards `/api` to the backend (`nginx.conf`).
 ```
 src/
   main.jsx, App.jsx    entry point and all page routes
-  api/                 functions that call the backend (auth.js, admin.js, patient.js)
+  api/                 functions that call the backend (auth, admin, patients, patient portal, settings, appointments)
   auth/                signed-in user (AuthContext), page guards, roles & where each one goes
   components/          shared UI: buttons, fields, modal, toasts, activity log, role home
     patients/          the patient file used by several roles: directory, file page, form, duplicate panel,
                        alerts, family, documents (upload / review / release), review queue
+    settings/          clinic setup: specialties, services & prices, doctors & schedules, rooms, leave, booking rules
+    appointments/      today's board, calendar (day timeline / week counts), booking with free-time picker,
+                       appointment drawer (arrive, call in, finish, reschedule, cancel), doctor's day
   layouts/             AuthLayout (sign-in screens), DashboardLayout (sidebar + top bar)
   i18n/                language switch and shared Arabic/English text
-  lib/                 formatting, error messages, password rules, activity labels
+  lib/                 formatting, clinic time (always Cairo time), error messages, password rules, activity labels
   styles/              design tokens and layouts
   pages/
     auth/              Login, Register (patients), ForgotPassword, TwoFactor, ChangePassword, ChooseRole

@@ -20,11 +20,20 @@ app/
                        catalog.py       specialties, services, prices (start dates, per-doctor), room types, rooms
                        schedules.py     doctor profiles & services, weekly hours, leave, holidays, week view
                        settings_api.py  /settings endpoints mounted by the roles that see or manage the setup
+                     and appointments:
+                       clinic_time.py      clinic clock (Africa/Cairo): today, local times
+                       app_settings.py     booking rules (slot step, late after, online booking & cancel window)
+                       slots.py            free times from weekly hours − leave − holidays − bookings; room choice
+                       appointments.py     book (several services), squeeze-in, reschedule, confirm, arrive
+                                           (queue number), call in, finish, cancel, no-show, day/week views
+                       appointments_api.py /appointments endpoints mounted by the roles that see the schedule
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
                      admin, management (owner / general manager), medical_director, reception,
                      patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
                      auditor, patient
 tests/               unit tests (pytest)
+tests/e2e/           end-to-end checks against the running system, e.g.
+                     python tests/e2e/appointments_e2e.py http://web:3000 <demo password>
 ```
 
 Each role's API lives at `/api/<role>` (underscores become dashes, e.g. `/api/medical-director`).
@@ -41,7 +50,7 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
 - Sessions are server-side; the browser only holds an httpOnly cookie. Staff sessions end after
   12 h or 60 min idle; patients stay signed in 7 days.
 - 2-step verification (authenticator app) is enforced for roles marked `requires_mfa`
-  (admin, owner, director, medical director, accountant, HR, auditor by default — editable by the admin).
+  (admin, management, medical director, accountant, HR, auditor by default — editable by the admin).
 - 5 wrong passwords lock the account for 15 minutes. Every sign-in and account change goes to
   `audit_log`, which the database refuses to update or delete.
 - Staff accounts are created only by the admin, with a temporary password that must be changed.
@@ -52,6 +61,13 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
 - Patient documents live in the private `patient-files` volume (only the backend mounts it), are checked
   by content (PDF/JPG/PNG, 15 MB), and every opening is logged. Patients see results only after a doctor
   releases them with a plain-language note; signed consents are always visible to them.
+- Doctors only see the files of patients who have an appointment with them.
+- A doctor or a room can never be double-booked: PostgreSQL exclusion constraints refuse overlapping
+  active appointments, even when two receptionists book the same minute. The only exception is a
+  squeeze-in, which needs the `appointments.overbook` permission and a written reason.
+- Every appointment change (booked, rescheduled, arrived, cancelled…) is kept in `appointment_events`.
+- Patients book online within the rules Management sets (how far ahead, how many upcoming visits,
+  optional confirmation by reception) and can cancel online up to 12 hours before (editable).
 
 ## Database changes
 
