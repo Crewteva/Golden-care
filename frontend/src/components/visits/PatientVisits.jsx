@@ -34,7 +34,7 @@ export function PatientVisits({ patientId }) {
               {v.readable ? (
                 <>
                   {v.diagnoses.length > 0 && <p className="vt-dx">{v.diagnoses.map((d) => diagnosisName(d, pick)).join(' · ')}</p>}
-                  {v.complaint && <p className="muted vt-line">{v.complaint}</p>}
+                  {v.complaint && <p className="muted vt-line" dir="auto">{v.complaint}</p>}
                   {v.rx.length > 0 && <p className="vt-rx"><Icon name="pill" size={14} /> {v.rx.map((r) => r.drug_name).join('، ')}</p>}
                   <div className="vt-foot">
                     {v.addenda_count > 0 && <small className="muted">{tx(`${v.addenda_count} ملاحظة لاحقة`, `${v.addenda_count} addendum(s)`)}</small>}

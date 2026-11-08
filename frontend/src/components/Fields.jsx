@@ -64,6 +64,7 @@ export function TextArea({ label, hint, error, optional, className, id: given, .
       <textarea
         id={id}
         className="textarea"
+        dir="auto"
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedBy(id, hint, error)}
         {...props}

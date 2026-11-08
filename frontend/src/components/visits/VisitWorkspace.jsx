@@ -49,7 +49,7 @@ function SaveState({ state, at }) {
 // Read-only rendering of a signed visit (also used for the medical director).
 function SignedNote({ visit, rx }) {
   const { tx, lang, pick } = useI18n()
-  const block = (label, text) => text && (<><dt>{label}</dt><dd className="prewrap">{text}</dd></>)
+  const block = (label, text) => text && (<><dt>{label}</dt><dd className="prewrap" dir="auto">{text}</dd></>)
   return (
     <>
       <section className="card">
@@ -117,7 +117,7 @@ function ReleasePanel({ data, onDone }) {
       <div className="card-body form">
         {v.released_at ? (
           <>
-            <p className="patient-summary prewrap">{v.patient_summary}</p>
+            <p className="patient-summary prewrap" dir="auto">{v.patient_summary}</p>
             <p className="muted" style={{ fontSize: '.84rem' }}>{tx('أتاحه', 'Released by')} {pick(v, 'released_by')} · <bdi>{fmtDateTime(v.released_at, locale)}</bdi>
               {data.rx.length > 0 && ` · ${tx('مع الروشتة', 'with the prescription')}`}</p>
           </>
@@ -163,7 +163,7 @@ function Addenda({ data, onDone }) {
         {data.addenda.length > 0 && (
           <ul className="addenda">
             {data.addenda.map((a) => (
-              <li key={a.id}><p className="prewrap">{a.body}</p><small className="muted">{pick(a, 'author_name')} · <bdi>{fmtDateTime(a.created_at, locale)}</bdi></small></li>
+              <li key={a.id}><p className="prewrap" dir="auto">{a.body}</p><small className="muted">{pick(a, 'author_name')} · <bdi>{fmtDateTime(a.created_at, locale)}</bdi></small></li>
             ))}
           </ul>
         )}
@@ -375,7 +375,7 @@ export default function VisitWorkspace() {
               {!data.alerts.length ? <p className="muted">{tx('لا توجد تنبيهات مسجّلة.', 'No alerts recorded.')}</p> : (
                 <ul className="alert-mini">
                   {data.alerts.map((a) => (
-                    <li key={a.id} className={`sev-${a.severity}`}><strong>{ALERT_KINDS[a.kind]?.[lang] || a.kind}</strong>{a.description}</li>
+                    <li key={a.id} className={`sev-${a.severity}`}><strong>{ALERT_KINDS[a.kind]?.[lang] || a.kind}</strong><span dir="auto">{a.description}</span></li>
                   ))}
                 </ul>
               )}
