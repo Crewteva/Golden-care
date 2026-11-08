@@ -994,10 +994,21 @@
   white-space: nowrap;
 }
 
+.statement-page .print-bar {
+  max-width: 900px;
+  margin-inline: auto;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .statement-sheet {
+  width: 100%;
+  min-width: 0;
   max-width: 900px;
   margin-inline: auto;
   overflow: hidden;
+}
+.st-sec {
+  overflow-x: auto;
 }
 .st-head {
   display: flex;

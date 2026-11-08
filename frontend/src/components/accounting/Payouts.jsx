@@ -258,7 +258,7 @@ export function PayoutPage() {
   const st = p.statement
   const done = () => { setModal(null); reload() }
   return (
-    <div className="page reveal">
+    <div className="page reveal statement-page">
       <div className="print-bar no-print">
         {back}
         <div className="page-actions">
