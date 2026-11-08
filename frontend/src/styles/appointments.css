@@ -190,6 +190,7 @@
 .appt-when {
   display: grid;
   gap: 2px;
+  justify-items: start;
 }
 .appt-when strong {
   font-family: var(--font-display);
