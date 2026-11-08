@@ -199,6 +199,9 @@
   color: var(--muted);
   margin-inline-start: 3px;
 }
+.vital-bp {
+  grid-column: span 2;
+}
 .vital.flag {
   background: var(--danger-bg);
   border-color: rgba(163, 36, 26, 0.35);

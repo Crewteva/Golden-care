@@ -88,7 +88,7 @@ export function VitalsTiles({ vitals }) {
           if (value === null) return null
           const flag = vitalFlag(vitals, m.key)
           return (
-            <div key={m.key} className={`vital ${flag ? 'flag' : ''}`}>
+            <div key={m.key} className={`vital vital-${m.key} ${flag ? 'flag' : ''}`}>
               <small>{m[lang]}</small>
               <strong className="num">{value}<span>{m.unit}</span></strong>
               {flag && <Icon name="alert" size={14} />}

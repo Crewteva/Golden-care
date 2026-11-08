@@ -78,9 +78,9 @@ function SignedNote({ visit, rx }) {
           <ol className="rx-read">
             {rx.map((r) => (
               <li key={r.id}>
-                <div><strong>{r.drug_name}</strong> <small className="muted">{r.generic_name} · {FORMS[r.form]?.[lang] || r.form}</small>
-                  {r.restricted && <span className="badge badge-gold">{tx('مقيّد', 'Restricted')}</span>}</div>
-                <div className="rx-sig">{r.dose} · {r.frequency} · {r.duration}{r.instructions && <> · <em>{r.instructions}</em></>}</div>
+                <div><bdi dir="ltr"><strong>{r.drug_name}</strong> <small className="muted">{r.generic_name}</small></bdi> <small className="muted">· {FORMS[r.form]?.[lang] || r.form}</small>
+                  {r.restricted && <> <span className="badge badge-gold">{tx('مقيّد', 'Restricted')}</span></>}</div>
+                <div className="rx-sig"><bdi dir="ltr">{r.dose} · {r.frequency} · {r.duration}</bdi>{r.instructions && <> · <em dir="auto">{r.instructions}</em></>}</div>
                 {r.allergy_alert && <small className="rx-note danger"><Icon name="alert" size={13} /> {tx('وُصف رغم حساسية مسجّلة', 'Prescribed despite a recorded allergy')} ({r.allergy_alert}): {r.allergy_reason}</small>}
                 {r.restricted && <small className="rx-note"><Icon name="lock" size={13} /> {r.restricted_reason}</small>}
               </li>
