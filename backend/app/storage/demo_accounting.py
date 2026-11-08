@@ -1,10 +1,10 @@
-"""Demo data for accounting (SEED_DEMO only), on top of the demo billing that's already in the journal: an opening
-balance, petty cash, a few expenses, a cash deposit to the bank, a card settlement with the provider's fee, a lab payment,
+"""Demo data for accounting (SEED_DEMO only), on top of the demo billing that's already in the journal: a few of last
+month's invoices (so it has income and doctor shares), an opening balance, petty cash, a few expenses, a cash deposit to the bank, a card settlement with the provider's fee, a lab payment,
 last month's doctor payouts prepared and last month's closing asked for (management approves it in the demo).
 
 Made through the real accounting code, as the demo accountant. Every amount here is invented."""
 import logging
-from datetime import timedelta
+from datetime import time, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -12,10 +12,12 @@ import psycopg
 
 from app.core import accounting as acc
 from app.core import accounting_ops as ops
-from app.core import clinic_time
+from app.core import billing, clinic_time, payments
 from app.core.accounting import L
 from app.core.accounting_schemas import LabPaymentIn, PayoutIn, SettlementIn, TransferIn
+from app.core.billing_schemas import InvoiceCreateIn, InvoiceUpdateIn, IssueIn, LineIn, PaymentIn, PaymentLineIn, ShiftCloseIn, ShiftOpenIn
 from app.core.errors import AppError
+from app.storage.demo_billing import CASHIER_PERMS, _actor as _billing_actor, _move_back
 
 log = logging.getLogger(__name__)
 D = Decimal
@@ -52,7 +54,52 @@ def seed_demo_accounting(conn: psycopg.Connection, branch_id: int) -> None:
         log.warning("Demo accounting skipped: %s", exc.code)
 
 
+def _last_month_billing(conn: psycopg.Connection, branch_id: int, last_month) -> None:
+    """A few invoices across last month (demo billing only covers the last days), so it has income, doctor shares to
+    pay out and a month to close. Made like demo billing: through the billing code, then moved back to their day."""
+    cashier_user = conn.execute("SELECT id, full_name_en FROM users WHERE email = 'cashier@demo.goldencare.local'").fetchone()
+    if not cashier_user:
+        return
+    cashier = _billing_actor(cashier_user["id"], cashier_user["full_name_en"], CASHIER_PERMS, "cashier", branch_id)
+    pairs = conn.execute(
+        """SELECT DISTINCT a.doctor_id, s.service_id FROM appointments a JOIN appointment_services s ON s.appointment_id = a.id
+           JOIN services sv ON sv.id = s.service_id WHERE sv.is_active ORDER BY 1, 2"""
+    ).fetchall()
+    patients = [r["id"] for r in conn.execute(
+        "SELECT id FROM patients ORDER BY mrn LIMIT 14")] if pairs else []
+    if not pairs or not patients:
+        return
+    moves, methods = [], ["cash", "card", "cash", "instapay", "card", "cash", "wallet"]
+    for n, offset in enumerate((5, 8, 12, 15, 19, 22, 26, 29)):
+        day = last_month + timedelta(days=offset)
+        shift = payments.open_shift(conn, cashier, ShiftOpenIn(opening_float=D(1000)))
+        for j in range(3):
+            pair = pairs[(n * 3 + j) % len(pairs)]
+            patient = patients[(n * 3 + j) % len(patients)]
+            at = clinic_time.at(day, time(11 + j * 2, 30))
+            try:
+                with conn.transaction():
+                    inv = billing.create(conn, cashier, InvoiceCreateIn(patient_id=patient))
+                    billing.update(conn, cashier, inv["id"], InvoiceUpdateIn(
+                        lines=[LineIn(kind="service", service_id=pair["service_id"], doctor_id=pair["doctor_id"])]))
+                    billing.issue(conn, cashier, inv["id"], IssueIn())
+                    total = D(billing.get(conn, inv["id"])["total"])
+                    if total > 0:
+                        method = methods[(n * 3 + j) % len(methods)]
+                        payments.collect(conn, cashier, PaymentIn(patient_id=patient, invoice_id=inv["id"], payments=[
+                            PaymentLineIn(method=method, amount=total, reference=None if method == "cash" else f"TX{6200000 + n * 10 + j}")]))
+                    moves.append(("invoices", inv["id"], at))
+            except AppError:
+                continue
+        expected = D(payments.shift_report(conn, cashier, shift["id"])["shift"]["expected_cash"])
+        payments.close_shift(conn, cashier, ShiftCloseIn(counted_cash=expected))
+        moves.append(("cash_shifts", shift["id"], clinic_time.at(day, time(10, 0)), clinic_time.at(day, time(21, 30))))
+    _move_back(conn, moves)
+
+
 def _build(conn, ctx, k, today, this_month, last_month) -> None:
+    _last_month_billing(conn, ctx.active_branch_id, last_month)
+    acc.sync(conn)
     acc.post(conn, day=last_month, memo="Opening balance: capital paid into the bank", source_type="manual", ctx=ctx,
              branch_id=ctx.active_branch_id, lines=[L(k["bank"], 400000), L(k["capital"], -400000)])
     ops.add_transfer(conn, ctx, TransferIn(moved_on=last_month, from_id=k["bank"], to_id=k["petty_cash"], amount=D(6000),
