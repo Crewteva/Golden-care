@@ -151,7 +151,7 @@ def _authored(conn: psycopg.Connection, ctx: Ctx, plan_id, statuses: tuple | Non
     if not _is_author(ctx, plan):
         raise AppError(403, "not_your_plan")
     if statuses and plan["status"] not in statuses:
-        raise AppError(409, "plan_wrong_status", status=plan["state"])
+        raise AppError(409, "plan_wrong_status", plan_status=plan["state"])
     return plan
 
 
@@ -377,7 +377,7 @@ def accept(conn: psycopg.Connection, plan_id, *, ctx: Ctx, via: str, patient_ids
     if plan["state"] == "expired":
         raise AppError(409, "quote_expired")
     if plan["status"] != "quoted":
-        raise AppError(409, "plan_wrong_status", status=plan["state"])
+        raise AppError(409, "plan_wrong_status", plan_status=plan["state"])
     today = clinic_time.today()
     conn.execute(
         """
@@ -401,7 +401,7 @@ def decline(conn: psycopg.Connection, plan_id, reason: str, *, ctx: Ctx, via: st
     elif not (_is_author(ctx, plan) or "dental.plans_view" in ctx.permissions):
         raise AppError(403, "not_your_plan")
     if plan["status"] != "quoted":
-        raise AppError(409, "plan_wrong_status", status=plan["state"])
+        raise AppError(409, "plan_wrong_status", plan_status=plan["state"])
     conn.execute("UPDATE treatment_plans SET status = 'declined', declined_at = now(), decline_reason = %s, updated_at = now() WHERE id = %s",
                  (reason.strip(), plan_id))
     audit.record(conn, "dental.plan_declined", ctx=ctx, entity="treatment_plan", entity_id=plan_id,
@@ -663,7 +663,7 @@ def move_case(conn: psycopg.Connection, ctx: Ctx, case_id, body: LabMoveIn) -> N
     row = _case(conn, ctx, case_id, lock=True)
     allowed = MOVES.get(row["status"], ())
     if body.to not in allowed:
-        raise AppError(409, "lab_wrong_status", status=row["status"])
+        raise AppError(409, "lab_wrong_status", case_status=row["status"])
     note = _clean(body.note)
     if body.to in ("remake", "cancelled") and (not note or len(note) < 3):
         raise field_error("note", "required")
