@@ -87,6 +87,24 @@ export const ACTIONS = {
   'clinical.drug_deleted': { ar: 'حذف دواء من القائمة', en: 'Drug deleted', tone: 'warn', icon: 'pill' },
   'clinical.diagnosis_saved': { ar: 'حفظ تشخيص في القائمة', en: 'Diagnosis list edited', icon: 'clipboard' },
   'clinical.diagnosis_deleted': { ar: 'حذف تشخيص من القائمة', en: 'Diagnosis deleted', tone: 'warn', icon: 'clipboard' },
+  'laser.signed': { ar: 'توقيع جلسة ليزر', en: 'Laser session signed', tone: 'good', icon: 'sparkle' },
+  'clinical.device_saved': { ar: 'حفظ جهاز ليزر', en: 'Laser device saved', icon: 'activity' },
+  'clinical.lab_saved': { ar: 'حفظ معمل أسنان', en: 'Dental lab saved', icon: 'package' },
+  'dental.chart_voided': { ar: 'إلغاء سطر في خريطة الأسنان', en: 'Tooth chart entry voided', tone: 'warn', icon: 'x' },
+  'dental.plan_created': { ar: 'خطة علاج جديدة', en: 'Treatment plan created', icon: 'clipboard' },
+  'dental.plan_quoted': { ar: 'إصدار عرض سعر', en: 'Quotation issued', icon: 'clipboard' },
+  'dental.plan_revised': { ar: 'إعادة خطة لمسودة', en: 'Plan revised', icon: 'edit' },
+  'dental.plan_accepted': { ar: 'موافقة المريض على الخطة', en: 'Plan accepted', tone: 'good', icon: 'checkCircle' },
+  'dental.plan_declined': { ar: 'رفض المريض للخطة', en: 'Plan declined', tone: 'warn', icon: 'x' },
+  'dental.plan_cancelled': { ar: 'إلغاء خطة علاج', en: 'Plan cancelled', tone: 'warn', icon: 'x' },
+  'dental.item_done': { ar: 'تنفيذ بند من الخطة', en: 'Plan item done', tone: 'good', icon: 'check' },
+  'dental.item_cancelled': { ar: 'إلغاء بند من الخطة', en: 'Plan item cancelled', icon: 'x' },
+  'lab.case_created': { ar: 'طلب عمل من المعمل', en: 'Lab case created', icon: 'package' },
+  'lab.case_delivered': { ar: 'تسليم عمل المعمل للمريض', en: 'Lab work delivered', tone: 'good', icon: 'checkCircle' },
+  'lab.case_remake': { ar: 'إعادة عمل من المعمل', en: 'Lab remake requested', tone: 'warn', icon: 'refresh' },
+  'lab.case_cancelled': { ar: 'إلغاء طلب معمل', en: 'Lab case cancelled', tone: 'warn', icon: 'x' },
+  'ticket.created': { ar: 'تسجيل شكوى أو طلب', en: 'Complaint / request logged', icon: 'headphones' },
+  'ticket.updated': { ar: 'متابعة شكوى أو طلب', en: 'Complaint / request updated', icon: 'headphones' },
   'system.first_admin': { ar: 'إنشاء أول مدير نظام', en: 'First admin created', icon: 'shield' },
 }
 
@@ -103,7 +121,11 @@ export const CATEGORIES = [
   { value: 'appointment', ar: 'المواعيد', en: 'Appointments' },
   { value: 'visit', ar: 'الزيارات والروشتات', en: 'Visits & prescriptions' },
   { value: 'vitals', ar: 'العلامات الحيوية', en: 'Vital signs' },
-  { value: 'clinical', ar: 'قوائم الأدوية والتشخيصات', en: 'Drug & diagnosis lists' },
+  { value: 'clinical', ar: 'القوائم الطبية والأجهزة', en: 'Clinical lists & devices' },
+  { value: 'laser', ar: 'جلسات الليزر', en: 'Laser sessions' },
+  { value: 'dental', ar: 'الأسنان وخطط العلاج', en: 'Dental & treatment plans' },
+  { value: 'lab', ar: 'أعمال المعمل', en: 'Lab work' },
+  { value: 'ticket', ar: 'الشكاوى والطلبات', en: 'Complaints & requests' },
 ]
 
 export function actionMeta(action) {

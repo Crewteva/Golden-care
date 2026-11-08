@@ -8,7 +8,7 @@ import { useWorkspace } from './useWorkspace'
 export default function HomeStats({ data }) {
   const { tx, locale } = useI18n()
   const { base, patientsBase, slug } = useWorkspace()
-  if (!data?.patients) return null
+  if (!data || !(data.patients || data.tickets || data.plans || data.lab_cases)) return null
   const n = (v) => fmtNumber(v, locale)
   const a = data.appointments
   const dayPage = slug === 'doctor' ? `${base}/my-day` : `${base}/today`
@@ -42,6 +42,27 @@ export default function HomeStats({ data }) {
           <div className="stat-foot">{tx('طلبها الأطباء ولم تُحجز بعد', 'Asked for by doctors, not booked yet')}</div>
         </Link>
       )}
+      {data.plans && (
+        <Link to={`${base}/plans`} className={`stat ${data.plans.awaiting ? 'attention' : ''}`}>
+          <div className="stat-label"><Icon name="clipboard" size={17} />{tx('عروض أسعار بانتظار المريض', 'Quotations awaiting patients')}</div>
+          <div className="stat-value num">{n(data.plans.awaiting)}</div>
+          <div className="stat-foot">{tx(`${data.plans.in_progress} خطة جارية · ${data.plans.draft} مسودة`, `${data.plans.in_progress} in progress · ${data.plans.draft} drafts`)}</div>
+        </Link>
+      )}
+      {data.lab_cases && (
+        <Link to={`${base}/lab-cases`} className={`stat ${data.lab_cases.overdue || data.lab_cases.ready ? 'attention' : ''}`}>
+          <div className="stat-label"><Icon name="package" size={17} />{tx('أعمال المعمل', 'Lab work')}</div>
+          <div className="stat-value num">{n(data.lab_cases.at_lab)}</div>
+          <div className="stat-foot">{tx(`${data.lab_cases.ready} جاهزة للتسليم · ${data.lab_cases.overdue} متأخرة`, `${data.lab_cases.ready} ready to fit · ${data.lab_cases.overdue} overdue`)}</div>
+        </Link>
+      )}
+      {data.tickets && (
+        <Link to={`${base}/complaints`} className={`stat ${data.tickets.overdue ? 'attention' : ''}`}>
+          <div className="stat-label"><Icon name="headphones" size={17} />{tx('شكاوى وطلبات مفتوحة', 'Open complaints & requests')}</div>
+          <div className="stat-value num">{n(data.tickets.open)}</div>
+          <div className="stat-foot">{tx(`${data.tickets.overdue} تجاوزت المهلة`, `${data.tickets.overdue} past deadline`)}</div>
+        </Link>
+      )}
       {data.pending_reviews !== undefined && (
         <Link to={`${base}/review`} className={`stat ${data.pending_reviews ? 'attention' : ''}`}>
           <div className="stat-label"><Icon name="clipboard" size={17} />{tx('نتائج بانتظار المراجعة', 'Results awaiting review')}</div>
@@ -49,15 +70,19 @@ export default function HomeStats({ data }) {
           <div className="stat-foot">{tx('لا يراها المريض قبل مراجعتك', "Patients can't see them until reviewed")}</div>
         </Link>
       )}
-      <Link to={patientsBase} className={`stat ${a ? '' : 'feature'}`}>
-        <div className="stat-label"><Icon name="users" size={17} />{tx('ملفات المرضى', 'Patient files')}</div>
-        <div className="stat-value num">{n(data.patients.total)}</div>
-      </Link>
-      <div className="stat">
-        <div className="stat-label"><Icon name="userPlus" size={17} />{tx('ملفات جديدة اليوم', 'New files today')}</div>
-        <div className="stat-value num">{n(data.patients.today)}</div>
-        <div className="stat-foot">{tx(`${data.patients.week} خلال ٧ أيام`, `${data.patients.week} in 7 days`)}</div>
-      </div>
+      {data.patients && (
+        <>
+          <Link to={patientsBase} className={`stat ${a ? '' : 'feature'}`}>
+            <div className="stat-label"><Icon name="users" size={17} />{tx('ملفات المرضى', 'Patient files')}</div>
+            <div className="stat-value num">{n(data.patients.total)}</div>
+          </Link>
+          <div className="stat">
+            <div className="stat-label"><Icon name="userPlus" size={17} />{tx('ملفات جديدة اليوم', 'New files today')}</div>
+            <div className="stat-value num">{n(data.patients.today)}</div>
+            <div className="stat-foot">{tx(`${data.patients.week} خلال ٧ أيام`, `${data.patients.week} in 7 days`)}</div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

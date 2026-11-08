@@ -11,6 +11,7 @@ import { errorText, fieldErrors } from '../../lib/errors'
 import { fmtDate } from '../../lib/format'
 import PricesModal from './PricesModal'
 import { ColorField, ConfirmDelete, fmtMoney, isoDate, useSettings } from './shared'
+import { CONDITIONS, RESULTS } from '../clinical/meta'
 
 const DURATIONS = [15, 20, 30, 45, 60, 90]
 
@@ -56,7 +57,7 @@ function SpecialtyModal({ specialty, onClose, onSaved }) {
 }
 
 function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) {
-  const { t, tx, pick } = useI18n()
+  const { t, tx, lang, pick } = useI18n()
   const { api, can } = useSettings()
   const [form, setForm] = useState(service
     ? { ...service, room_type_id: service.room_type_id ?? '' }
@@ -81,6 +82,7 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
         specialty_id: Number(form.specialty_id), code: form.code, name_ar: form.name_ar, name_en: form.name_en,
         duration_min: Number(form.duration_min), room_type_id: form.room_type_id ? Number(form.room_type_id) : null,
         is_active: form.is_active, sort_order: Number(form.sort_order) || 0,
+        clinical_record: form.clinical_record || null, dental_result: form.clinical_record === 'dental' ? form.dental_result || null : null,
         price: !service && form.price !== '' && can('settings.prices') ? { amount: Number(form.price), starts_on: form.price_from } : null,
       }
       service ? await api.services.edit(service.id, body) : await api.services.add(body)
@@ -117,6 +119,14 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
           </div>
           <SelectField label={tx('نوع الغرفة المطلوبة', 'Room type needed')} value={form.room_type_id} onChange={set('room_type_id')}
             options={catalog.room_types.map((r) => ({ value: r.id, label: pick(r) }))} placeholder={tx('أي غرفة', 'Any room')} />
+          <SelectField label={tx('سجل طبي خاص', 'Clinical record')} value={form.clinical_record || ''} onChange={set('clinical_record')}
+            placeholder={tx('زيارة عادية فقط', 'Visit note only')}
+            options={[{ value: 'laser', label: tx('جلسة ليزر', 'Laser session') }, { value: 'dental', label: tx('أسنان (خريطة وخطة علاج)', 'Dental (chart & plan)') }]}
+            hint={tx('يحدد السجل الذي يفتحه الطبيب لهذه الخدمة.', 'Decides which record the doctor opens for this service.')} />
+          {form.clinical_record === 'dental' && (
+            <SelectField label={tx('يظهر على خريطة الأسنان بعد التنفيذ', 'Shown on the tooth chart when done')} value={form.dental_result || ''} onChange={set('dental_result')}
+              placeholder={tx('لا شيء', 'Nothing')} options={RESULTS.map((r) => ({ value: r, label: CONDITIONS[r][lang] }))} />
+          )}
         </div>
         {!service && can('settings.prices') && (
           <div className="form-grid">

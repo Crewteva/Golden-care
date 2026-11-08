@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useClinical } from '../clinical/meta'
 import Button from '../Button'
 import Icon from '../Icon'
 import Modal from '../Modal'
@@ -173,6 +174,40 @@ function Addenda({ data, onDone }) {
               hint={tx('الزيارة الأصلية لا تتغير. تُضاف الملاحظة بتاريخها واسمك تحتها.', 'The original visit never changes. The addendum is added below it with the date and your name.')} />
             <Button variant="ghost" icon="plus" loading={busy} disabled={body.trim().length < 5} onClick={add} style={{ justifySelf: 'start' }}>{tx('إضافة', 'Add')}</Button>
           </>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// Laser and dental services have their own records; open them from the visit.
+function ClinicalLinks({ visit, appt }) {
+  const { t, tx } = useI18n()
+  const { laser, base, can } = useClinical()
+  const toast = useToast()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+  const kinds = new Set((appt?.services || []).map((s) => s.clinical_record).filter(Boolean))
+  if (!kinds.size) return null
+  const startLaser = async () => {
+    setBusy(true)
+    try {
+      const s = await laser.start(appt.id)
+      navigate(`${base}/laser/${s.id}`)
+    } catch (err) {
+      toast.error(errorText(err, t))
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="card">
+      <div className="card-head"><h2>{tx('سجلات هذه الخدمة', 'Records for this service')}</h2></div>
+      <div className="card-body form">
+        {kinds.has('laser') && can('laser.record') && (
+          <Button variant="gold" icon="sparkle" loading={busy} onClick={startLaser} block>{tx('سجل جلسة الليزر', 'Laser session record')}</Button>
+        )}
+        {kinds.has('dental') && (
+          <Link to={`${base}/patients/${visit.patient_id}?tab=dental`} className="btn btn-gold btn-block"><Icon name="layers" size={18} />{tx('خريطة الأسنان وخطة العلاج', 'Tooth chart & treatment plan')}</Link>
         )}
       </div>
     </section>
@@ -369,6 +404,7 @@ export default function VisitWorkspace() {
         </div>
 
         <aside className="visit-side">
+          <ClinicalLinks visit={v} appt={appt} />
           <section className="card">
             <div className="card-head"><h2><Icon name="alert" size={17} /> {tx('التنبيهات الطبية', 'Medical alerts')}</h2></div>
             <div className="card-body">
