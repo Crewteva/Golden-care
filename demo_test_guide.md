@@ -14,8 +14,8 @@ Add `?lang=en` to any address to see it in English; the language switch is in th
 | 2 | Patient records | ✅ Done | 2 |
 | 3 | Reception & appointments | ✅ Appointments · ✅ complaints & requests desk · ⏳ message monitor (with req. 10) | 4, 6 |
 | 4 | Doctor's work (clinical) | ✅ Done (money links of plans and lab costs connect in req. 5–7) | 5, 6 |
-| 5 | Billing, payments & cashier | ⏳ | — |
-| 6 | Accounting & finance (built together with 5) | ⏳ | — |
+| 5 | Billing, payments & cashier | ✅ Part A done (invoices, payments, shifts, packages, installments, approvals, refunds) · ⏳ Paymob online payment and Tax Authority e-receipts (need the clinic's accounts) | 7 |
+| 6 | Accounting & finance (built together with 5) | ⏳ Part B (next) | — |
 | 7 | Stock, purchasing & medical devices | ⏳ | — |
 | 8 | HR & salaries | ⏳ | — |
 | 9 | Public website & marketing | ⏳ | — |
@@ -42,7 +42,7 @@ Staff sign in with their **e-mail**; patients sign in with their **mobile number
 | Role | Sign in with | Name | 2-step code? | Use it to test |
 |---|---|---|---|---|
 | System admin | `admin@demo.goldencare.local` | Karim Mansour | Yes | Staff accounts, roles & permissions, cover, reset requests, branches, activity log |
-| Management | `director@demo.goldencare.local` | Mona Abdelrahman | Yes | Services & prices, doctors & schedules, rooms, leave, booking rules, calendar |
+| Management | `director@demo.goldencare.local` | Mona Abdelrahman | Yes | Services & prices, doctors & schedules, rooms, leave, booking rules, calendar, billing approvals & setup |
 | Management | `owner@demo.goldencare.local` | Dr. Hesham El-Masry | Yes | Same as above (second manager) |
 | Medical director | `meddir@demo.goldencare.local` | Dr. Tarek Fawzy | Yes | Patient files, result review, doctors' schedules & leave, calendar |
 | Reception | `reception@demo.goldencare.local` | Nourhan Adel | No | Patient files, today's board, booking, calendar |
@@ -51,9 +51,10 @@ Staff sign in with their **e-mail**; patients sign in with their **mobile number
 | Doctor — dental | `dr.dental@demo.goldencare.local` | Dr. Ahmed El-Sherif | No | My day, own patients, demo leave |
 | Doctor — gynecology | `dr.obgyn@demo.goldencare.local` | Dr. Nermeen Fathy | No | My day, own patients |
 | Nurse | `nurse@demo.goldencare.local` | Aya Mostafa | No | Today's appointments, patient files, alerts, uploads |
-| Cashier | `cashier@demo.goldencare.local` | Mahmoud Ibrahim | No | Today's appointments, price list |
-| Accountant / HR / Inventory / Marketing / Auditor | `accountant@…`, `hr@…`, `inventory@…`, `marketing@…`, `auditor@…` (all `@demo.goldencare.local`) | — | Accountant, HR, auditor: yes | Sign-in and home page only for now; the auditor sees the activity log |
-| **Patient** | mobile **`01001110001`** | Omar Youssef | No | Patient portal: appointments, online booking, results, family |
+| Cashier | `cashier@demo.goldencare.local` | Mahmoud Ibrahim | No | Cashier desk, shifts, invoices, payments, refunds, price list |
+| Accountant / Auditor | `accountant@…`, `auditor@…` (`@demo.goldencare.local`) | — | Yes | Invoices, shifts & cash, refunds (read-only); the auditor also sees the activity log |
+| HR / Inventory / Marketing | `hr@…`, `inventory@…`, `marketing@…` (`@demo.goldencare.local`) | — | HR: yes | Sign-in and home page only for now |
+| **Patient** | mobile **`01001110001`** | Omar Youssef | No | Patient portal: appointments, online booking, results, family, my bills |
 
 Notes
 - **2-step code:** on the first sign-in, roles marked "Yes" are asked to scan a QR code with an authenticator app
@@ -386,5 +387,104 @@ stage (one overdue, one remake); 6+ complaints including one past its deadline.
 | 6.26 | Medical director → Clinical lists → **Laser devices** → lower a device's counter | Refused: a counter can't go backwards |
 
 **Accounts:** `nurse@`, `dr.dental@`, `dr.derm@`, `reception@`, `relations@`, `meddir@`, `director@`, patient `01001110001`.
+
+---
+
+## 7. Billing, payments & cashier — part A (requirement 5)
+
+**Covers:**
+- **Cashier desk:** everyone who arrived today, with what's left to bill or collect; finished treatment-plan items
+  "ready to bill"; a search for any patient's account.
+- **Invoices:** made from a visit in one click (its services, the doctor and price-list prices filled in), or from
+  scratch. A line can be a service, a **package sale**, a **package session** (0 EGP, uses one session) or a
+  **treatment plan item**. Prices come from the server and can't be typed. VAT per service. A discount needs a
+  reason; above the clinic's limit (10% in the demo) it waits for a manager. Once issued, an invoice is locked and
+  numbered (`INV-…`); a mistake is fixed by **voiding** it (manager approval, with a reason).
+- **Payments:** cash, card, InstaPay, mobile wallet or the patient's credit, several on one receipt (`RC-…`).
+  Card, InstaPay and wallet need the reference number. Paying more than is due puts the rest on the patient's
+  **credit**. 80 mm receipt and invoice prints.
+- **Installments:** a down payment + monthly installments when issuing; reception sees **Installments due**.
+- **Patient account:** what the patient owes, their credit and its history, packages with sessions left, invoices
+  and receipts.
+- **Cashier shifts:** a payment can only be taken in an open shift. Open with the cash float; closing asks for the
+  counted cash against expected = float + cash in − cash refunds. A difference needs a reason and is recorded;
+  a closed shift can't be changed.
+- **Refunds:** from the patient's credit only. The cashier requests, a manager approves, then the cashier pays out.
+- **Approvals (management):** big discounts, voids, refunds; rejecting needs a note. Every decision is in the activity log.
+- **Setup (management):** **Packages** (add / edit / delete; a package that was already sold can't be deleted,
+  only switched off), **Doctor shares** (percent or fixed amount, per doctor or per service, optionally after the
+  service's direct cost), **Billing rules** (discount limit, most installments, note printed on receipts). VAT and
+  direct cost are set per service in Services & prices.
+- **Who sees what:** doctor shares are shown to management only, never to the cashier or the patient. The
+  accountant and auditor can read invoices, shifts and refunds but can't change anything.
+- **Patient portal → My bills:** their invoices, installments, receipts and packages, with prints.
+
+**Not connected yet:** **Paymob online payment** and **Tax Authority e-receipts** aren't built. Invoices only
+carry an e-receipt status field for later; both need the clinic's Paymob account and Tax Authority credentials.
+Accounting (journal entries, profit & loss, doctor payouts) comes in part B.
+
+**Where:**
+- Cashier → **Cashier desk**, **My shift**, **Invoices**, **Refunds**, **Shift reports**; a patient's name opens their account
+- Reception → **Installments due**, **Invoices**
+- Management → **Approvals**, **Invoices**, **Shifts & cash**, **Refunds**; setup: **Packages**, **Doctor shares**,
+  **Billing rules**; Services & prices → a service's **VAT (%)** and **Direct cost**
+- Accountant / Auditor → **Invoices**, **Shifts & cash**, **Refunds**
+- Patient → **My bills**
+
+**Demo data:** 5 packages (placeholders for the demo), doctor shares (Dr. Rania 40%, Dr. Ahmed 35% + a fixed
+100 EGP per dental consultation, Dr. Nermeen 45%), the last days' invoices and receipts paid by different methods,
+one closed shift per day (one 50 EGP short, with a reason), a split cash + card payment, an overpayment left as
+credit, **Omar Youssef** with a package sold in installments, and waiting for a manager: a 20% discount and a
+refund. Teeth whitening has 14% VAT. No shift is open, so testing starts by opening one.
+
+### How to use
+- **Start the day** (cashier): My shift → enter the cash in the drawer → *Open shift*.
+- **Bill a visit:** Cashier desk → a patient who arrived → *Invoice* → check the lines (add a service, package or
+  plan item; change quantity or doctor) → optional discount with a reason → *Issue invoice*.
+- **Take a payment:** on the invoice → *Collect* → one or more methods → save. Print the receipt from the
+  confirmation or from the payments list.
+- **Sell a package in installments:** new invoice → *Package sale* → choose it → *Issue invoice* → *In installments*
+  → down payment and number of months.
+- **End the day:** My shift → *Close shift* → count the cash → if it doesn't match, write why → close. The shift
+  report can be printed.
+- **Approve** (management): Approvals → *Approve* or *Reject* (with a note).
+
+### Test cases
+
+| # | Do this | Expected |
+|---|---|---|
+| 7.1 | Cashier → collect a payment before opening a shift | Refused: "Open your shift first" |
+| 7.2 | My shift → open with 1,000 EGP | Shift open; only one open shift per cashier |
+| 7.3 | Reception marks a patient *Arrived* → Cashier desk | The patient appears as "to bill" |
+| 7.4 | *Invoice* on that patient | A draft with the visit's services, the doctor and price-list prices; billing the same visit again opens the same draft |
+| 7.5 | Add a discount without a reason | Refused: reason required |
+| 7.6 | Discount of 5% with a reason → *Issue invoice* | Issued straight away with an `INV-` number |
+| 7.7 | Discount of 30% → *Issue invoice* | "Waiting for a manager"; no number yet |
+| 7.8 | Management → Approvals → reject it without a note | Refused: a note is needed. Approving issues the invoice (issued by the cashier, approved by the manager) |
+| 7.9 | Try to edit an issued invoice | Locked; only *Ask to void* is possible |
+| 7.10 | Pay by card without the terminal reference | Refused: reference required |
+| 7.11 | Pay part in cash and part by card | One receipt `RC-…` with both methods; the invoice becomes *Partly paid* |
+| 7.12 | Pay 300 EGP more than what's left | The invoice is *Paid*; 300 EGP goes to the patient's credit (Patient account → credit history) |
+| 7.13 | Pay with **From credit** | Taken from the credit; the credit balance goes down |
+| 7.14 | Sell a package → *Issue invoice* → *In installments* | The number of installments only goes up to the clinic's maximum (12, from Billing rules); the server refuses more |
+| 7.15 | Sell a package with a down payment + 2 installments | A schedule of 3 lines on the invoice; Reception → Installments due shows the monthly ones |
+| 7.16 | The same patient's next visit for that service → *Invoice* | The line is a **Package session** at 0 EGP; sessions left goes down by one |
+| 7.17 | Management → void the package sale after a session was used | Refused: the package is in use |
+| 7.18 | Cashier → *Ask to void* on a paid invoice (with a reason) → manager approves | Invoice *Void* (stamped on the print); what was paid moves to the patient's credit |
+| 7.19 | Request a refund bigger than the patient's credit | Refused |
+| 7.20 | Request a refund → *Pay out* before approval | Refused; after the manager approves, *Pay out* works and the credit goes down |
+| 7.21 | Close the shift counting 20 EGP less than expected, with no reason | Refused: a reason is needed; with one it closes and the report shows −20 |
+| 7.22 | Open a closed shift's report → *Print* | Float, cash in by method, refunds, expected, counted, difference and reason |
+| 7.23 | Print an invoice and a receipt | Invoice with letterhead and installment schedule; an 80 mm receipt |
+| 7.24 | Management → Packages → add, edit and delete a package nobody bought | All three work; deleting a sold package is refused ("switch it off instead") |
+| 7.25 | Cashier tries to change packages or doctor shares | Not possible (no such pages; the server refuses too) |
+| 7.26 | Open the same invoice as the cashier and as management | Only management sees each line's doctor share |
+| 7.27 | Accountant → Invoices → *Unpaid*, sort by balance | Sorted list with totals; no create or collect buttons |
+| 7.28 | Management → Billing rules → discount limit 20% → cashier gives 15% | Issued without approval |
+| 7.29 | Patient `01001110001` → My bills | Invoices, the package with sessions left, installments and receipts (printable); no doctor shares |
+| 7.30 | Management → Services & prices → a service → VAT 14% → invoice it | VAT shown on the line and in the totals |
+
+**Accounts:** `cashier@`, `reception@`, `director@` or `owner@` (2-step on first sign-in), `accountant@`,
+`auditor@`, patient `01001110001`.
 
 ---

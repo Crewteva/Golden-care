@@ -37,6 +37,16 @@ app/
                                            work done → ready to bill), dental labs and lab cases
                        complaints.py       the complaints & requests desk (assign, deadline by priority, resolve)
                        laser_api.py, dental_api.py, complaints_api.py   the matching endpoints
+                     and billing (requirement 5, part A):
+                       billing.py          invoices: draft from a visit or from scratch, lines (service, package
+                                           sale, package session, plan item), server prices, VAT, discount limit,
+                                           issue (numbered, locked), installments, void, approvals, doctor shares
+                       payments.py         cashier shifts (open / expected cash / close with difference), receipts
+                                           with split methods, patient credit, refunds
+                       billing_setup.py    packages, doctor share rules, billing rules (discount limit, installments)
+                       billing_schemas.py  request models
+                       billing_api.py      /billing endpoints mounted by cashier, reception, management, accountant,
+                                           auditor (what each may do comes from billing.* permissions)
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
                      admin, management (owner / general manager), medical_director, reception,
                      patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
@@ -46,6 +56,7 @@ tests/e2e/           end-to-end checks against the running system, e.g.
                      python tests/e2e/appointments_e2e.py http://web:3000 <demo password>
                      python tests/e2e/visits_e2e.py http://web:3000 <demo password>
                      python tests/e2e/dental_laser_e2e.py http://web:3000 <demo password>
+                     python tests/e2e/billing_e2e.py http://web:3000 <demo password>
 ```
 
 Each role's API lives at `/api/<role>` (underscores become dashes, e.g. `/api/medical-director`).
@@ -96,6 +107,19 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
   becomes "ready to bill" for billing (requirement 5); installments are scheduled, payments come with billing.
 - Complaints get a response deadline from their priority (urgent 4 h, high 24 h, normal 48 h, low 72 h); their
   history is append-only. Patients see the status and the resolution, never internal comments.
+- Invoice prices come from the price list on the server. Once issued, an invoice is numbered (`INV-…`) and locked
+  by the database (trigger `invoices_lock`); a mistake is fixed by voiding it with a reason and a manager's
+  approval, and what was paid goes to the patient's credit. Receipts, credit movements and closed shifts are
+  append-only too.
+- A discount needs a reason; above the limit in Billing rules (10% by default) it waits for a manager. Voids and
+  refunds always do. Every decision is in the activity log.
+- Payments are only taken in the cashier's open shift; card, InstaPay and wallet need a reference. Overpayment
+  goes to credit; refunds come out of credit only. Closing a shift with a cash difference needs a reason.
+- A package sale creates the patient's package; later visits for that service use a session at 0 EGP. A package
+  that was sold can't be deleted (only switched off), and a sale can't be voided once a session was used.
+- Doctor shares (percent or fixed, optionally after the service's direct cost) are stored per line when issued
+  and only returned to management, never to the cashier or the patient.
+- Not built yet: Paymob online payment and Tax Authority e-receipts (invoices carry an `eta_status` column for later).
 
 ## Database changes
 

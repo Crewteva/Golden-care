@@ -126,7 +126,7 @@ export default function PatientAccount() {
               <tbody>
                 {data.invoices.map((i) => (
                   <tr key={i.id}>
-                    <td><Link to={`${bill}/invoices/${i.id}`} className="mrn">{i.ref || tx('مسودة', 'Draft')}</Link></td>
+                    <td><Link to={`${bill}/invoices/${i.id}`} className={i.ref ? 'mrn' : undefined}>{i.ref || tx('مسودة', 'Draft')}</Link></td>
                     <td><bdi>{fmtDate(i.issued_at || i.created_at, locale)}</bdi></td>
                     <td><InvoiceBadge invoice={i} /></td>
                     <td className="num">{money(i.total, locale)}</td>
