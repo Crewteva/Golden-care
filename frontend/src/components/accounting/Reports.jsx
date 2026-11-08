@@ -7,7 +7,7 @@ import { EmptyState, ErrorState, PageHeader, SkeletonRows } from '../ui'
 import { useAsync } from '../useAsync'
 import { useI18n } from '../../i18n/I18nContext'
 import { fmtDateTime } from '../../lib/format'
-import { SourceChip, accountLabel, amt, dayLabelShort, downloadCsv, monthLabel, monthStart, money, num, today, useAccounting } from './meta'
+import { SourceChip, accountLabel, amt, dayLabelShort, downloadCsv, memoText, monthLabel, monthStart, money, num, today, useAccounting } from './meta'
 
 const REPORTS = [
   { key: 'pnl', icon: 'pie', ar: 'الأرباح والخسائر', en: 'Profit & loss', range: true },
@@ -150,7 +150,7 @@ function Report({ r, f, set, period }) {
         cols: [
           { label: tx('القيد', 'Entry'), cell: jr, csv: (x) => x.ref },
           { label: tx('المصدر', 'Source'), cell: (x) => <><SourceChip type={x.source_type} /> <small className="mrn">{x.source_ref}</small></>, csv: (x) => `${x.source_type} ${x.source_ref || ''}` },
-          { label: tx('البيان', 'Memo'), cell: (x) => <span className="cell-wrap">{x.memo}</span>, csv: (x) => x.memo },
+          { label: tx('البيان', 'Memo'), cell: (x) => <span className="cell-wrap">{memoText(x, lang)}</span>, csv: (x) => memoText(x, lang) },
           { label: tx('الحساب', 'Account'), cell: (x) => accountLabel(x, pick), csv: (x) => accountLabel(x, pick) },
           { label: tx('داخل', 'In'), num: true, cell: (x) => amt(x.debit, locale), csv: (x) => x.debit },
           { label: tx('خارج', 'Out'), num: true, cell: (x) => amt(x.credit, locale), csv: (x) => x.credit },
@@ -185,7 +185,7 @@ function Report({ r, f, set, period }) {
       cols: [
         { label: tx('التاريخ', 'Date'), cell: (x) => <bdi>{dayLabelShort(x.entry_date, locale)}</bdi>, csv: (x) => x.entry_date },
         { label: tx('القيد', 'Entry'), cell: jr, csv: (x) => x.ref },
-        { label: tx('البيان', 'Memo'), cell: (x) => <span className="cell-wrap">{x.line_memo || x.memo}{(x.mrn || x.doctor_name_en) && <small className="muted" style={{ display: 'block' }}>{[x.mrn && `${pick(x, 'patient_name')} ${x.mrn}`, pick(x, 'doctor_name')].filter(Boolean).join(' · ')}</small>}</span>, csv: (x) => x.line_memo || x.memo },
+        { label: tx('البيان', 'Memo'), cell: (x) => <span className="cell-wrap">{(x.service_name_en && pick(x, 'service_name')) || x.line_memo || memoText(x, lang)}{(x.mrn || x.doctor_name_en) && <small className="muted" style={{ display: 'block' }}>{[x.mrn && `${pick(x, 'patient_name')} ${x.mrn}`, pick(x, 'doctor_name')].filter(Boolean).join(' · ')}</small>}</span>, csv: (x) => (x.service_name_en && pick(x, 'service_name')) || x.line_memo || memoText(x, lang) },
         { label: tx('مدين', 'Debit'), num: true, total: 'debit', cell: (x) => amt(x.debit, locale), csv: (x) => x.debit },
         { label: tx('دائن', 'Credit'), num: true, total: 'credit', cell: (x) => amt(x.credit, locale), csv: (x) => x.credit },
         { label: tx('الرصيد', 'Balance'), num: true, cell: (x) => m(x.balance), csv: (x) => x.balance },

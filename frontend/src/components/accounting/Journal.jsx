@@ -174,7 +174,7 @@ function EntryModal({ options, onClose, onDone }) {
 
 export function EntryPage() {
   const { id } = useParams()
-  const { tx, pick, locale } = useI18n()
+  const { tx, pick, locale, lang } = useI18n()
   const { api, base, canPost } = useAccounting()
   const navigate = useNavigate()
   const [reversing, setReversing] = useState(false)
@@ -188,7 +188,7 @@ export function EntryPage() {
   return (
     <div className="page reveal">
       <PageHeader back={back} eyebrow={<SourceChip type={e.source_type} />} title={<>{tx('قيد', 'Entry')} <span className="mrn title-ref">{e.ref}</span></>}
-        description={e.memo}
+        description={memoText(e, lang)}
         actions={<>
           <Button variant="ghost" icon="printer" onClick={() => window.print()}>{tx('طباعة', 'Print')}</Button>
           {canReverse && <Button variant="ghost" icon="refresh" onClick={() => setReversing(true)}>{tx('قيد عكسي', 'Reverse')}</Button>}
@@ -214,7 +214,7 @@ export function EntryPage() {
                 <tr key={i}>
                   <td><span className="mrn">{l.code}</span> {pick(l)}</td>
                   <td className="cell-wrap muted">
-                    {[l.memo, l.patient_name_en && `${pick(l, 'patient_name')} (${l.mrn})`, l.doctor_name_en && pick(l, 'doctor_name'), l.service_name_en && pick(l, 'service_name')].filter(Boolean).join(' · ') || '—'}
+                    {[l.service_name_en ? null : l.memo, l.patient_name_en && `${pick(l, 'patient_name')} (${l.mrn})`, l.doctor_name_en && pick(l, 'doctor_name'), l.service_name_en && pick(l, 'service_name')].filter(Boolean).join(' · ') || '—'}
                   </td>
                   <td className="num">{amt(l.debit, locale)}</td>
                   <td className="num">{amt(l.credit, locale)}</td>
