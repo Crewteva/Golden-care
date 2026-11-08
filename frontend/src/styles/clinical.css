@@ -266,14 +266,14 @@ button.device-pill {
 /* dental: chart */
 .chart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   padding: clamp(14px, 2vw, 22px);
   align-items: start;
 }
-@media (max-width: 1100px) {
+@media (min-width: 1500px) {
   .chart-layout {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 320px;
   }
 }
 .odontogram {
@@ -283,8 +283,10 @@ button.device-pill {
 .odontogram svg {
   display: block;
   width: 100%;
-  min-width: 620px;
+  max-width: 900px;
+  min-width: 560px;
   height: auto;
+  margin-inline: auto;
 }
 .odontogram .tooth {
   cursor: pointer;
@@ -347,7 +349,7 @@ button.device-pill {
 .tooth-panel.empty {
   place-items: center;
   text-align: center;
-  min-height: 180px;
+  min-height: 90px;
   color: var(--muted);
 }
 .tooth-panel h3 {
