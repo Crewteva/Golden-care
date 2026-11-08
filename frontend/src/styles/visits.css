@@ -92,6 +92,10 @@
   gap: 20px;
   min-width: 0;
 }
+.visit-main > *,
+.visit-side > * {
+  min-width: 0;
+}
 .visit-side {
   position: sticky;
   top: 84px;
