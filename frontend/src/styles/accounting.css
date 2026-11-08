@@ -973,7 +973,20 @@
   font-size: 0.86rem;
 }
 .rej-row {
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto minmax(160px, auto) minmax(0, 1fr);
+  align-items: start;
+  gap: 8px 18px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+.rej-row:last-child {
+  border-bottom: 0;
+}
+.table .mrn,
+.rej-row .mrn {
+  white-space: nowrap;
 }
 
 .statement-sheet {
@@ -1606,6 +1619,13 @@
   .period-head .row-actions {
     margin-inline-start: 0;
     width: 100%;
+  }
+  .rej-row {
+    grid-template-columns: auto 1fr;
+    padding: 12px 14px;
+  }
+  .rej-row .appr-reason {
+    grid-column: 1 / -1;
   }
   .recon-row {
     grid-template-columns: auto 1fr auto;
