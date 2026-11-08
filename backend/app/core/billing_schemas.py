@@ -10,8 +10,8 @@ PayMethod = Literal["cash", "card", "instapay", "wallet", "credit"]
 RefundMethod = Literal["cash", "card", "instapay", "wallet"]
 
 
-def money(le: int = 1_000_000, ge: int = 0):
-    return Field(ge=ge, le=le, decimal_places=2)
+def money(le: int = 1_000_000, ge: int = 0, **kw):
+    return Field(ge=ge, le=le, decimal_places=2, **kw)
 
 
 class LineIn(BaseModel):
@@ -32,7 +32,7 @@ class InvoiceCreateIn(BaseModel):
 
 class InvoiceUpdateIn(BaseModel):
     lines: list[LineIn] = Field(max_length=60)
-    discount_amount: Money = money()
+    discount_amount: Money = money(default=Decimal(0))
     discount_reason: str | None = Field(default=None, max_length=300)
     notes: str | None = Field(default=None, max_length=500)
 
@@ -40,7 +40,7 @@ class InvoiceUpdateIn(BaseModel):
 class IssueIn(BaseModel):
     # 0 = paid in full now; otherwise the rest (after the down payment) is split into monthly installments
     installments: int = Field(default=0, ge=0, le=24)
-    down_payment: Money = money()
+    down_payment: Money = money(default=Decimal(0))
     first_due_on: date | None = None
 
 
