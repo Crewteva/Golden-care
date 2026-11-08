@@ -13,7 +13,7 @@ Add `?lang=en` to any address to see it in English; the language switch is in th
 | 1 | Logins, permissions & security | ✅ Done | 1 |
 | 2 | Patient records | ✅ Done | 2 |
 | 3 | Reception & appointments | ✅ Appointments done · ⏳ complaints & requests desk · ⏳ message monitor (with req. 10) | 4 |
-| 4 | Doctor's work (clinical) | ⏳ Next | — |
+| 4 | Doctor's work (clinical) | ✅ 4A visit, vitals, prescriptions · ⏳ 4B laser, dental chart, dental plans, lab cases | 5 |
 | 5 | Billing, payments & cashier | ⏳ | — |
 | 6 | Accounting & finance (built together with 5) | ⏳ | — |
 | 7 | Stock, purchasing & medical devices | ⏳ | — |
@@ -258,5 +258,66 @@ cancelled, waiting, confirmed, booked, online requests) plus one squeeze-in toda
 | 4.24 | Doctor → My day | Own patients in queue order with Call in / Finish; no access to other doctors' visits |
 
 **Tip:** after testing 4.22 and 4.23, put the booking rules back to the values in the table above.
+
+---
+
+## 5. Doctor's work, part A: visit record, vital signs, prescriptions (requirement 4)
+
+**Covers:** vital signs taken by the nurse; the visit record (complaint, history, examination, diagnosis,
+plan) that opens when the doctor calls the patient in; only the treating doctor can write or read it (plus
+the medical director); the patient's alerts pinned at the top; diagnoses picked from a list (Arabic, English or
+ICD-10 code) or typed; prescriptions picked from a drug list, with an allergy warning that needs a written
+reason and extra rules for restricted medicines; a printable A5 prescription on the clinic letterhead;
+signing locks the visit for good (corrections are dated addenda); the doctor releases a plain-language
+summary + prescription to the patient; follow-ups the doctor asks for appear for reception to book.
+
+**Where:**
+- Nurse → **Vital signs** (today's arrived patients in queue order) · patient file → **Vital signs** tab
+- Doctor → **My day** (*Call in* opens the visit) · **My visits** (drafts / not released / released) · patient file → **Visits** tab
+- Medical director → **Visits** (every doctor) · **Drugs & diagnoses** (edit the lists)
+- Reception / Patient relations → **Follow-ups due**
+- Patient → **My visits** (summary + prescription, *Print prescription*)
+
+**Demo data:** 29 signed visits from the past completed appointments (19 released), 59 drugs (5 restricted:
+Tramal, Lyrica, Xanax, Acnotin, Clomid) and 42 diagnoses. All lists are a starter set to be replaced by the clinic.
+Useful patients: **Nadia Samir Fahmy** (penicillin allergy, critical) · **Sara Mohamed Abdallah** (lidocaine allergy) ·
+**Mahmoud Ali Hassan** (on warfarin) · **Omar Youssef** and his son **Youssef** (portal account).
+
+### How to use
+1. Reception books the patient and clicks **Arrived**.
+2. Nurse → Vital signs → **Record** (blood pressure, pulse, temperature, SpO₂, weight, height…). Values outside the usual
+   range show in red. A mistake is fixed by recording again (readings are never edited).
+3. Doctor → My day → **Call next**: the visit opens. Write the note; it saves itself every second or so (“Draft saved”).
+4. Diagnosis: type “abscess”, “تسوس” or “K04” and pick; or type your own text and choose *Add as free text*. The first is the main one.
+5. Prescription: type a drug name → pick → dose / how often / how long are pre-filled; add instructions for the patient.
+6. **Sign & finish visit** → confirm. The visit is locked and the appointment is finished.
+7. Write the **summary for the patient** → **Release to the patient**. Then **Print prescription** if needed.
+
+### Test cases
+
+| # | Do this | Expected |
+|---|---|---|
+| 5.1 | Nurse → Vital signs → Record only the top number of the blood pressure | Refused: both numbers needed |
+| 5.2 | Record 150/95, pulse 110 | Saved; BP and pulse shown in red on the visit |
+| 5.3 | Doctor → My day → Call in a waiting patient | The visit page opens straight away, with alerts and the nurse's vitals |
+| 5.4 | Click **Sign & finish visit** with an empty note | Refused: complaint/examination and a diagnosis are needed |
+| 5.5 | For **Nadia Samir Fahmy**, add *Augmentin* to the prescription | Red allergy warning (Penicillin); the line isn't saved until a reason is written |
+| 5.6 | For **Sara Mohamed Abdallah**, add *Pridocaine* | Allergy warning (Lidocaine) |
+| 5.7 | Add *Tramal 50 mg* | “Restricted” — a reason is required; it's recorded in the activity log on signing |
+| 5.8 | Sign the visit, then try to change anything | Everything is read-only; only **Add an addendum** is possible |
+| 5.9 | Add an addendum | Shown under the visit with date and name; the original text is unchanged |
+| 5.10 | **Release to the patient** with a summary of less than 10 characters | Button stays disabled |
+| 5.11 | Release with a proper summary; sign in as the patient → My visits | The summary and prescription appear; complaint, examination, diagnosis and plan never do |
+| 5.12 | **Print prescription** (doctor or patient) | A5 sheet: clinic letterhead, doctor, patient, allergies, drugs, signature line; the menus aren't printed |
+| 5.13 | Doctor `dr.derm` opens a visit written by `dr.dental` (patient file → Visits) | Shows “Treating doctor only”; opening it is refused |
+| 5.14 | Medical director → Visits → open any visit | Readable; can add an addendum but not edit; the opening is logged in the activity log |
+| 5.15 | Nurse opens a patient file | **Vital signs** tab only — no Visits tab |
+| 5.16 | In a visit, set **Follow-up: in 7 days** + a note; sign | The patient appears in reception's **Follow-ups due** with the note; booking with that doctor removes them |
+| 5.17 | Reception → Follow-ups due → **Book follow-up** | Booking page opens with the patient chosen; the same doctor is pre-selected once you pick the service |
+| 5.18 | Medical director → Drugs & diagnoses → add a drug with allergy word “sulfa” | Appears in the doctors' drug search; patients with a “sulfa” allergy get the warning |
+| 5.19 | Delete a drug that was prescribed before | Refused (“in use”); switch it off instead |
+| 5.20 | Doctor home | Counts of unsigned visits and visits not yet released |
+
+**Accounts:** `nurse@`, `dr.dental@` / `dr.derm@` / `dr.obgyn@`, `meddir@` (2-step on first sign-in), `reception@`, patient `01001110001`.
 
 ---

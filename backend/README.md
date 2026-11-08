@@ -27,6 +27,11 @@ app/
                        appointments.py     book (several services), squeeze-in, reschedule, confirm, arrive
                                            (queue number), call in, finish, cancel, no-show, day/week views
                        appointments_api.py /appointments endpoints mounted by the roles that see the schedule
+                     and the doctor's work:
+                       visits.py           visit note, diagnoses, prescription (allergy / restricted checks), sign
+                                           (locks it), addenda, release to the patient, vital signs, follow-ups
+                       clinical_lists.py   the drug list and the diagnosis list (medical director)
+                       visits_api.py       /visits endpoints mounted by doctor, nurse, medical director, reception
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
                      admin, management (owner / general manager), medical_director, reception,
                      patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
@@ -34,6 +39,7 @@ app/
 tests/               unit tests (pytest)
 tests/e2e/           end-to-end checks against the running system, e.g.
                      python tests/e2e/appointments_e2e.py http://web:3000 <demo password>
+                     python tests/e2e/visits_e2e.py http://web:3000 <demo password>
 ```
 
 Each role's API lives at `/api/<role>` (underscores become dashes, e.g. `/api/medical-director`).
@@ -68,6 +74,14 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
 - Every appointment change (booked, rescheduled, arrived, cancelled…) is kept in `appointment_events`.
 - Patients book online within the rules Management sets (how far ahead, how many upcoming visits,
   optional confirmation by reception) and can cancel online up to 12 hours before (editable).
+- A visit opens when the doctor calls the patient in. Only its doctor writes it; other doctors see that it
+  exists, not what is in it; the medical director reads every visit (each reading is logged).
+- Signing locks the visit in the database itself (trigger `visits_lock`): the note, diagnoses and prescription
+  can never change again; corrections are addenda, which are append-only too. Vital signs are append-only.
+- A drug matching one of the patient's allergy alerts, or a restricted medicine, is only kept with a written
+  reason; both are recorded in the activity log when the visit is signed.
+- Patients see a visit only after the doctor releases it, and then only the plain-language summary and the
+  prescription — never the medical note.
 
 ## Database changes
 
