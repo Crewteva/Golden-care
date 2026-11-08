@@ -6,7 +6,8 @@ from uuid import UUID
 import psycopg
 from fastapi import APIRouter, Depends
 
-from app.core import catalog, schedules
+from app.core import app_settings, catalog, schedules
+from app.core.appointment_schemas import BookingRulesIn
 from app.core.session import Ctx, require_permission
 from app.core.settings_schemas import (
     DoctorProfileIn, DoctorServicesIn, HolidayIn, LeaveIn, PriceIn, RoomIn, RoomTypeIn, ScheduleIn, ServiceIn, SpecialtyIn,
@@ -26,6 +27,19 @@ Conn = psycopg.Connection
 @router.get("/catalog")
 def get_catalog(_: Ctx = Depends(can_view), conn: Conn = Depends(get_conn)):
     return catalog.catalog(conn)
+
+
+# --- booking rules (slot length, lateness, patient online booking & cancelling) ---
+
+@router.get("/booking-rules")
+def get_booking_rules(_: Ctx = Depends(can_view), conn: Conn = Depends(get_conn)):
+    return app_settings.booking(conn)
+
+
+@router.put("/booking-rules")
+def put_booking_rules(body: BookingRulesIn, ctx: Ctx = Depends(require_permission("settings.booking")),
+                      conn: Conn = Depends(get_conn)):
+    return app_settings.save_booking(conn, ctx, body.model_dump())
 
 
 # --- specialties ---

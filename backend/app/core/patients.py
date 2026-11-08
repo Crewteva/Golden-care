@@ -101,8 +101,12 @@ SORTS = {
 
 
 def search(conn: psycopg.Connection, *, q=None, gender=None, age_min=None, age_max=None, source=None,
-           has_alerts=None, sort="created", direction="desc", page=1, page_size=25) -> dict:
+           has_alerts=None, sort="created", direction="desc", page=1, page_size=25, doctor_id=None) -> dict:
     where, params = [], []
+    if doctor_id:
+        # doctors see the patients who have (or had) an appointment with them
+        where.append("EXISTS (SELECT 1 FROM appointments ap WHERE ap.patient_id = p.id AND ap.doctor_id = %s)")
+        params.append(doctor_id)
     if q and q.strip():
         term = q.strip()
         digits = clean_national_id(term)

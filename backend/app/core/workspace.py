@@ -32,17 +32,34 @@ def workspace_home(conn: psycopg.Connection, ctx: Ctx) -> dict:
         "previous_login_ip": ctx.user["previous_login_ip"],
         "cover": cover,
     }
+    doctor = ctx.user_id if ctx.active_role == "doctor" else None
     if "patients.view" in ctx.permissions:
         summary["patients"] = conn.execute(
             """
             SELECT count(*) AS total,
                    count(*) FILTER (WHERE created_at >= date_trunc('day', now())) AS today,
                    count(*) FILTER (WHERE created_at >= date_trunc('day', now()) - interval '6 days') AS week
-            FROM patients
-            """
+            FROM patients p
+            WHERE %(doctor)s::uuid IS NULL OR EXISTS (SELECT 1 FROM appointments ap WHERE ap.patient_id = p.id AND ap.doctor_id = %(doctor)s::uuid)
+            """,
+            {"doctor": doctor},
         ).fetchone()
     if "patient_files.review" in ctx.permissions:
-        summary["pending_reviews"] = conn.execute(
-            "SELECT count(*) AS n FROM patient_files WHERE review_status = 'pending' AND voided_at IS NULL"
-        ).fetchone()["n"]
+        from app.core.files import review_queue
+
+        summary["pending_reviews"] = len(review_queue(conn, doctor))
+    if "appointments.view" in ctx.permissions:
+        summary["appointments"] = conn.execute(
+            """
+            SELECT count(*) FILTER (WHERE status NOT IN ('cancelled', 'no_show')) AS today,
+                   count(*) FILTER (WHERE status IN ('requested', 'booked', 'confirmed')) AS waiting_arrival,
+                   count(*) FILTER (WHERE status = 'arrived') AS arrived,
+                   count(*) FILTER (WHERE status = 'in_room') AS in_room,
+                   count(*) FILTER (WHERE status = 'completed') AS completed,
+                   count(*) FILTER (WHERE status = 'requested') AS requested
+            FROM appointments
+            WHERE starts_at::date = current_date AND (%(doctor)s::uuid IS NULL OR doctor_id = %(doctor)s::uuid)
+            """,
+            {"doctor": doctor},
+        ).fetchone()
     return summary

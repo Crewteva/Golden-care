@@ -1,4 +1,5 @@
 """/api/patient: registration is public; everything else needs a signed-in patient."""
+from datetime import date
 from uuid import UUID
 
 import psycopg
@@ -6,10 +7,11 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import FileResponse
 
 from app.core import files
+from app.core.appointment_schemas import PortalBookIn, PortalCancelIn
 from app.core.session import Ctx, require_role, set_session_cookie
 from app.core.workspace import workspace_home
 from app.storage.db import get_conn
-from app.users.patient import service
+from app.users.patient import booking, service
 from app.users.patient.schemas import ProfileUpdate, RegisterIn
 
 router = APIRouter(tags=["patient"])
@@ -36,6 +38,34 @@ def get_profile(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depen
 @router.put("/profile")
 def update_profile(body: ProfileUpdate, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
     return service.update_profile(conn, ctx, body)
+
+
+@router.get("/appointments")
+def my_appointments(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    return booking.my_appointments(conn, ctx)
+
+
+@router.get("/booking/options")
+def booking_options(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    return booking.options(conn, ctx)
+
+
+@router.get("/booking/slots")
+def booking_slots(service_id: int, on: date, doctor_id: UUID | None = None, _: Ctx = Depends(is_patient),
+                  conn: psycopg.Connection = Depends(get_conn)):
+    return booking.free_slots(conn, service_id, on, doctor_id)
+
+
+@router.post("/appointments", status_code=201)
+def book(body: PortalBookIn, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    created = booking.book(conn, ctx, body)
+    return {**created, **booking.my_appointments(conn, ctx)}
+
+
+@router.post("/appointments/{appointment_id}/cancel")
+def cancel(appointment_id: UUID, body: PortalCancelIn, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    booking.cancel(conn, ctx, appointment_id, body)
+    return booking.my_appointments(conn, ctx)
 
 
 @router.get("/family")

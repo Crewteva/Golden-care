@@ -185,15 +185,19 @@ def void(conn: psycopg.Connection, ctx: Ctx, patient_id, file_id, reason: str) -
                           "was_released": row["released_at"] is not None})
 
 
-def review_queue(conn: psycopg.Connection) -> list[dict]:
+def review_queue(conn: psycopg.Connection, doctor_id=None) -> list[dict]:
+    """Results waiting for a doctor. A doctor sees those of their own patients (or that they uploaded)."""
     return conn.execute(
         f"""
         SELECT {FILE_COLUMNS}, p.mrn, p.full_name_ar, p.full_name_en, p.date_of_birth, p.gender
         FROM patient_files f {FILE_JOINS} JOIN patients p ON p.id = f.patient_id
         WHERE f.review_status = 'pending' AND f.voided_at IS NULL
+          AND (%(doctor)s::uuid IS NULL OR f.uploaded_by = %(doctor)s::uuid
+               OR EXISTS (SELECT 1 FROM appointments ap WHERE ap.patient_id = f.patient_id AND ap.doctor_id = %(doctor)s::uuid))
         ORDER BY f.uploaded_at
         LIMIT 200
-        """
+        """,
+        {"doctor": doctor_id},
     ).fetchall()
 
 

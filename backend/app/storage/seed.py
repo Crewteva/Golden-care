@@ -52,6 +52,12 @@ PERMISSIONS = [
     ("settings.prices", "settings", "إدارة الأسعار", "Manage prices"),
     ("settings.rooms", "settings", "إدارة الغرف", "Manage rooms"),
     ("settings.schedules", "settings", "إدارة الأطباء والجداول والإجازات", "Manage doctors, schedules & leave"),
+    ("settings.booking", "settings", "تعديل قواعد الحجز", "Change booking rules"),
+    ("appointments.view", "appointments", "عرض المواعيد", "View appointments"),
+    ("appointments.book", "appointments", "حجز المواعيد", "Book appointments"),
+    ("appointments.manage", "appointments", "تأكيد ووصول وإلغاء ونقل المواعيد", "Confirm, check in, cancel & move appointments"),
+    ("appointments.treat", "appointments", "استدعاء المريض وإنهاء الزيارة", "Call in & finish visits"),
+    ("appointments.overbook", "appointments", "إضافة موعد خارج الأوقات المتاحة", "Squeeze in outside free times"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -80,6 +86,12 @@ PERMISSION_DEFAULTS = {
     "settings.prices": ["management"],
     "settings.rooms": ["management", "admin"],
     "settings.schedules": ["management", "medical_director"],
+    "settings.booking": ["management"],
+    "appointments.view": ["reception", "patient_relations", "doctor", "nurse", "medical_director", "management", "cashier"],
+    "appointments.book": ["reception", "patient_relations"],
+    "appointments.manage": ["reception", "patient_relations"],
+    "appointments.treat": ["doctor"],
+    "appointments.overbook": ["reception"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -106,6 +118,7 @@ DEMO_DOMAIN = "demo.goldencare.local"
 
 def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_patients import seed_demo_patients
+    from app.storage.demo_appointments import seed_demo_appointments
     from app.storage.demo_settings import seed_demo_settings
 
     with conn.transaction():
@@ -116,6 +129,7 @@ def run_seed(conn: psycopg.Connection) -> None:
             _demo_accounts(conn, branch_id)
             seed_demo_patients(conn, branch_id)
             seed_demo_settings(conn, branch_id)
+            seed_demo_appointments(conn)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:
