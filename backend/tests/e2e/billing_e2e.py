@@ -2,7 +2,8 @@
 
     python tests/e2e/billing_e2e.py http://web:3000 <demo password>
 
-Works on the demo data and leaves realistic records behind (issued invoices and receipts can't be deleted)."""
+Works on the demo data and leaves realistic records behind (issued invoices and receipts can't be deleted).
+Signing in sets up 2-step for the demo accounts; to run it again, reset 2-step for those accounts first (never admin@)."""
 import sys
 from datetime import date, datetime, timedelta, timezone
 
@@ -199,5 +200,6 @@ check("expected cash = float + cash in − cash refunds", abs(exp - (500 + 1000 
 s, e = cash.req("POST", f"{B}/shift/close", {"counted_cash": exp - 20})
 check("a difference needs a reason", s == 422 and "difference_reason" in e["error"]["fields"], e)
 s, closed = cash.req("POST", f"{B}/shift/close", {"counted_cash": exp - 20, "difference_reason": "Gave change from my own wallet"})
-check("shift closed with the difference recorded", s == 200 and closed["status"] == "closed" and closed["difference"] == -20, closed)
+check("shift closed with the difference recorded", s == 200 and closed["shift"]["status"] == "closed" and closed["shift"]["difference"] == -20,
+      closed.get("shift"))
 print(f"\n{check.passed()} checks passed")

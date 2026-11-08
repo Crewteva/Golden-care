@@ -1,4 +1,5 @@
 import RoleHome from '../../../components/RoleHome'
+import BillingStats from '../../../components/billing/BillingStats'
 
 // What this workspace will hold, from the project to-do list. Replace with real pages as they're built.
 const UPCOMING = [
@@ -9,5 +10,5 @@ const UPCOMING = [
 ]
 
 export default function Home() {
-  return <RoleHome upcoming={UPCOMING} />
+  return <RoleHome upcoming={UPCOMING}>{(data) => <BillingStats data={data} />}</RoleHome>
 }

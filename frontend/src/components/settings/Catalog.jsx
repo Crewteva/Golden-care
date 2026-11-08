@@ -60,8 +60,8 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
   const { t, tx, lang, pick } = useI18n()
   const { api, can } = useSettings()
   const [form, setForm] = useState(service
-    ? { ...service, room_type_id: service.room_type_id ?? '' }
-    : { specialty_id: defaultSpecialty || catalog.specialties[0]?.id || '', code: '', name_ar: '', name_en: '', duration_min: 30, room_type_id: '', is_active: true, sort_order: 0, price: '', price_from: isoDate(new Date()) })
+    ? { ...service, room_type_id: service.room_type_id ?? '', vat_rate: String(Number(service.vat_rate ?? 0)), direct_cost: String(Number(service.direct_cost ?? 0)) }
+    : { specialty_id: defaultSpecialty || catalog.specialties[0]?.id || '', code: '', name_ar: '', name_en: '', duration_min: 30, room_type_id: '', is_active: true, sort_order: 0, price: '', price_from: isoDate(new Date()), vat_rate: '0', direct_cost: '0' })
   const [errors, setErrors] = useState({})
   const [busy, setBusy] = useState(false)
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
@@ -74,6 +74,10 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
     if (form.name_ar.trim().length < 2) e.name_ar = t('field.required')
     if (form.name_en.trim().length < 2) e.name_en = t('field.required')
     if (!(Number(form.duration_min) >= 5 && Number(form.duration_min) <= 480)) e.duration_min = tx('من ٥ إلى ٤٨٠ دقيقة', '5 to 480 minutes')
+    if (can('settings.prices')) {
+      if (form.vat_rate === '' || !(Number(form.vat_rate) >= 0 && Number(form.vat_rate) <= 30)) e.vat_rate = tx('من ٠ إلى ٣٠٪', '0 to 30%')
+      if (form.direct_cost === '' || !(Number(form.direct_cost) >= 0)) e.direct_cost = t('field.invalid')
+    }
     setErrors(e)
     if (Object.keys(e).length) return
     setBusy(true)
@@ -84,6 +88,7 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
         is_active: form.is_active, sort_order: Number(form.sort_order) || 0,
         clinical_record: form.clinical_record || null, dental_result: form.clinical_record === 'dental' ? form.dental_result || null : null,
         price: !service && form.price !== '' && can('settings.prices') ? { amount: Number(form.price), starts_on: form.price_from } : null,
+        ...(can('settings.prices') ? { vat_rate: Number(form.vat_rate), direct_cost: Number(form.direct_cost) } : {}),
       }
       service ? await api.services.edit(service.id, body) : await api.services.add(body)
       onSaved()
@@ -132,6 +137,14 @@ function ServiceModal({ service, catalog, defaultSpecialty, onClose, onSaved }) 
           <div className="form-grid">
             <TextField label={tx('السعر الأساسي (جنيه)', 'Standard price (EGP)')} optional type="number" min="0" step="0.01" dir="ltr" value={form.price} onChange={set('price')} />
             <TextField label={tx('يبدأ من', 'Starts on')} type="date" value={form.price_from} onChange={set('price_from')} />
+          </div>
+        )}
+        {can('settings.prices') && (
+          <div className="form-grid">
+            <TextField label={tx('ضريبة القيمة المضافة (٪)', 'VAT (%)')} type="number" min="0" max="30" step="0.01" dir="ltr" value={form.vat_rate} onChange={set('vat_rate')}
+              error={errors.vat_rate} hint={tx('٠ للخدمات الطبية المعفاة.', '0 for exempt medical services.')} />
+            <TextField label={tx('التكلفة المباشرة (جنيه)', 'Direct cost (EGP)')} type="number" min="0" step="0.01" dir="ltr" value={form.direct_cost} onChange={set('direct_cost')}
+              error={errors.direct_cost} hint={tx('مواد مستهلكة لكل جلسة؛ تُخصم قبل حصة الطبيب إن طُلب.', 'Consumables per session; taken off before the doctor share when set.')} />
           </div>
         )}
         <Checkbox checked={form.is_active} onChange={set('is_active')} label={tx('متاحة للحجز', 'Available for booking')}

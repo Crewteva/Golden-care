@@ -7,6 +7,8 @@ import BookOnline from './BookOnline'
 import Visits, { MyVisitPrint } from './Visits'
 import Plans, { MyPlanPrint } from './Plans'
 import Requests from './Requests'
+import Bills from './Bills'
+import { MyInvoicePrint, MyReceiptPrint } from '../../../components/billing/Prints'
 
 export default {
   role: 'patient',
@@ -18,6 +20,9 @@ export default {
     { path: 'visits/:id/print', nav: false, element: <MyVisitPrint /> },
     { path: 'plans', icon: 'clipboard', label: { ar: 'خطط العلاج', en: 'Treatment plans' }, element: <Plans /> },
     { path: 'plans/:id/print', nav: false, element: <MyPlanPrint /> },
+    { path: 'bills', icon: 'cash', label: { ar: 'فواتيري', en: 'My bills' }, element: <Bills /> },
+    { path: 'bills/invoices/:id/print', nav: false, element: <MyInvoicePrint /> },
+    { path: 'bills/receipts/:id/print', nav: false, element: <MyReceiptPrint /> },
     { path: 'documents', icon: 'fileSearch', label: { ar: 'نتائجي ومستنداتي', en: 'Results & documents' }, element: <Documents /> },
     { path: 'family', icon: 'users', label: { ar: 'عائلتي', en: 'My family' }, element: <Family /> },
     { path: 'requests', icon: 'headphones', label: { ar: 'الشكاوى والطلبات', en: 'Complaints & requests' }, element: <Requests /> },

@@ -1,13 +1,21 @@
 import RoleHome from '../../../components/RoleHome'
-
-// What this workspace will hold, from the project to-do list. Replace with real pages as they're built.
-const UPCOMING = [
-  { icon: 'cash', ar: 'فتح وإغلاق الوردية', en: "Open & close shift", note: { ar: 'مع عدّ الدرج', en: "With drawer count" } },
-  { icon: 'clipboard', ar: 'تحصيل الفواتير', en: "Collect invoices", note: { ar: 'نقدي وبطاقة وإنستاباي ومحفظة', en: "Cash, card, InstaPay, wallet" } },
-  { icon: 'refresh', ar: 'صرف المرتجعات المعتمدة', en: "Pay approved refunds", note: { ar: 'بعد موافقة المسؤول', en: "After approval" } },
-  { icon: 'fileSearch', ar: 'إيصال حراري ٨٠ مم', en: "80 mm thermal receipt", note: { ar: 'طباعة فورية', en: "Instant print" } },
-]
+import BillingStats from '../../../components/billing/BillingStats'
+import { PatientFinder } from '../../../components/billing/meta'
+import { useI18n } from '../../../i18n/I18nContext'
 
 export default function Home() {
-  return <RoleHome upcoming={UPCOMING} />
+  const { tx } = useI18n()
+  return (
+    <RoleHome>
+      {(data) => (
+        <>
+          <section className="card card-body home-finder">
+            <h2 className="card-title">{tx('حساب مريض', 'Patient account')}</h2>
+            <PatientFinder />
+          </section>
+          <BillingStats data={data} />
+        </>
+      )}
+    </RoleHome>
+  )
 }

@@ -12,6 +12,11 @@ import PlanPage from '../../../components/dental/PlanPage'
 import QuotationPrint from '../../../components/dental/Quotation'
 import LabCases from '../../../components/dental/LabCases'
 import ComplaintsDesk from '../../../components/complaints/ComplaintsDesk'
+import InvoicesList from '../../../components/billing/InvoicesList'
+import InvoicePage from '../../../components/billing/InvoicePage'
+import PatientAccount from '../../../components/billing/PatientAccount'
+import InstallmentsDue from '../../../components/billing/InstallmentsDue'
+import { InvoicePrint, ReceiptPrint } from '../../../components/billing/Prints'
 
 export default {
   role: 'reception',
@@ -24,7 +29,13 @@ export default {
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
     { path: 'plans', icon: 'clipboard', label: { ar: 'خطط علاج الأسنان', en: 'Dental plans' }, element: <PlansList />, permission: 'dental.plans_view' },
     { path: 'lab-cases', icon: 'package', label: { ar: 'أعمال المعمل', en: 'Lab work' }, element: <LabCases />, permission: 'dental.lab' },
+    { path: 'billing/installments', icon: 'smartphone', label: { ar: 'أقساط مستحقة', en: 'Installments due' }, element: <InstallmentsDue />, permission: 'billing.view' },
+    { path: 'billing/invoices', icon: 'cash', label: { ar: 'الفواتير', en: 'Invoices' }, element: <InvoicesList />, permission: 'billing.view' },
     { path: 'complaints', icon: 'headphones', label: { ar: 'الشكاوى والطلبات', en: 'Complaints & requests' }, element: <ComplaintsDesk />, permission: 'complaints.create' },
+    { path: 'billing/invoices/:id', nav: false, element: <InvoicePage />, permission: 'billing.view' },
+    { path: 'billing/invoices/:id/print', nav: false, element: <InvoicePrint />, permission: 'billing.view' },
+    { path: 'billing/receipts/:id/print', nav: false, element: <ReceiptPrint />, permission: 'billing.view' },
+    { path: 'billing/patients/:id', nav: false, element: <PatientAccount />, permission: 'billing.view' },
     { path: 'patients/new', nav: false, element: <NewPatient />, permission: 'patients.create' },
     { path: 'schedules', icon: 'clock', label: { ar: 'جدول الأطباء', en: 'Doctor schedules' }, element: <WeekView />, permission: 'settings.view' },
     { path: 'patients/:id', nav: false, element: <PatientFile />, permission: 'patients.view' },
