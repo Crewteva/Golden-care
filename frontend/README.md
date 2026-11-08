@@ -19,6 +19,10 @@ src/
     visits/            the visit workspace (note, diagnosis picker, prescription editor, sign, release, addenda),
                        vital signs, printable prescription (A5), visits list, nurse's vitals list,
                        reception's follow-ups, drug & diagnosis lists
+    laser/             laser session record and today's laser list
+    dental/            tooth chart (SVG odontogram), dental tab, treatment plan page, quotation (print), lab cases
+    complaints/        the complaints & requests desk
+    clinical/          shared labels and hooks for laser, dental and complaints; devices & labs lists
   layouts/             AuthLayout (sign-in screens), DashboardLayout (sidebar + top bar)
   i18n/                language switch and shared Arabic/English text
   lib/                 formatting, clinic time (always Cairo time), error messages, password rules, activity labels

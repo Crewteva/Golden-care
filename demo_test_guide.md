@@ -12,8 +12,8 @@ Add `?lang=en` to any address to see it in English; the language switch is in th
 |---|---|---|---|
 | 1 | Logins, permissions & security | ✅ Done | 1 |
 | 2 | Patient records | ✅ Done | 2 |
-| 3 | Reception & appointments | ✅ Appointments done · ⏳ complaints & requests desk · ⏳ message monitor (with req. 10) | 4 |
-| 4 | Doctor's work (clinical) | ✅ 4A visit, vitals, prescriptions · ⏳ 4B laser, dental chart, dental plans, lab cases | 5 |
+| 3 | Reception & appointments | ✅ Appointments · ✅ complaints & requests desk · ⏳ message monitor (with req. 10) | 4, 6 |
+| 4 | Doctor's work (clinical) | ✅ Done (money links of plans and lab costs connect in req. 5–7) | 5, 6 |
 | 5 | Billing, payments & cashier | ⏳ | — |
 | 6 | Accounting & finance (built together with 5) | ⏳ | — |
 | 7 | Stock, purchasing & medical devices | ⏳ | — |
@@ -319,5 +319,72 @@ Useful patients: **Nadia Samir Fahmy** (penicillin allergy, critical) · **Sara 
 | 5.20 | Doctor home | Counts of unsigned visits and visits not yet released |
 
 **Accounts:** `nurse@`, `dr.dental@` / `dr.derm@` / `dr.obgyn@`, `meddir@` (2-step on first sign-in), `reception@`, patient `01001110001`.
+
+---
+
+## 6. Doctor's work, part B: laser, tooth chart, treatment plans, lab work + complaints desk (requirements 4 and 3)
+
+**Covers:**
+- **Laser sessions:** safety checklist before starting (stop questions need a written reason; signed consent is
+  required), skin type, settings per body area, the device pulse counter before/after — every pulse must be
+  accounted for — and signing locks the record and moves the device counter forward.
+- **Tooth chart:** FDI numbering, adult and child teeth, conditions per surface, planned work outlined in gold;
+  a history that is never edited (a wrong entry is voided with a reason).
+- **Treatment plans:** items by tooth/surface priced from the price list, a quotation valid until a date (printable),
+  patient acceptance (online or signed at the clinic), down payment + monthly installments, items marked done
+  become "ready to bill" and go on the chart. Invoices and payments come with requirement 5.
+- **Lab work:** ordered → sent → back → delivered, remakes with a reason, due dates and overdue flags, the lab cost
+  (owed to the lab) and the doctor's share — connected to accounting in requirement 6.
+- **Complaints & requests desk:** log, assign, response deadline by priority, comments, resolve, close;
+  patients send theirs from the portal and see the answer.
+
+**Where:**
+- Doctor → **Laser sessions**, **Treatment plans**, **Lab work**; patient file → **Dental** and **Laser** tabs;
+  in a visit, the side card **Records for this service** opens the laser record or the tooth chart
+- Nurse → **Laser sessions**, **Lab work**, **Complaints & requests**
+- Reception → **Dental plans** (record acceptance), **Lab work**, **Complaints & requests**
+- Patient relations / Management → **Complaints & requests** (full desk), **Dental plans**
+- Medical director → **Dental plans**, **Lab work**, **Clinical lists** (drugs, diagnoses, laser devices, dental labs)
+- Management → Services & prices → a service's **Clinical record** (laser / dental) and what the chart shows when done
+- Patient → **Treatment plans** (accept / decline / print), **Complaints & requests**
+
+**Demo data:** 2 laser devices with session history (Omar Youssef: full-body course; Sara, Yasmine, Noura: face);
+tooth charts for the dentist's patients; plans in every state — Ahmed Mahmoud El-Sayed (accepted, 3 of 4 done,
+crown at the lab), Mostafa Ibrahim Shahin (quoted), Tarek Gamal El-Din (draft), **Youssef Omar Youssef (quoted —
+Omar can accept it in the portal)**, Malak (completed), Amr Khaled Nasr (expired); 3 labs and lab cases in every
+stage (one overdue, one remake); 6+ complaints including one past its deadline.
+
+### Test cases
+
+| # | Do this | Expected |
+|---|---|---|
+| 6.1 | Nurse → Laser sessions → **Start session record** for an arrived laser patient | Opens prefilled from last time: device, counter, areas and settings, session number |
+| 6.2 | Click **Sign the session** with questions unanswered | Refused: answer every question |
+| 6.3 | Answer "No" to *signed consent* | Can't be signed without consent |
+| 6.4 | Answer "Yes" to *sun tan in the last 2 weeks* | Asks for a written reason (10+ characters) before signing |
+| 6.5 | Counter before 1,000 / after 1,140, area pulses 130, test pulses 0 | Red: "10 pulses not accounted for — write why"; signing needs the explanation |
+| 6.6 | Put 10 test pulses | Green: every pulse accounted for; signing works and the device counter moves to 1,140 |
+| 6.7 | Open the signed session | Read-only; previous sessions shown on the side |
+| 6.8 | Dentist → Ahmed's file → **Dental** tab → click tooth 47 → add *Caries* on O | Appears red on the chart and in the tooth's history |
+| 6.9 | Void that entry with a reason | Struck through in the history, kept forever |
+| 6.10 | **New plan** → add *Composite filling* on 16 + *Scaling* | Price filled from the price list (can't be typed) |
+| 6.11 | Set down payment higher than the total → **Issue quotation** | Refused |
+| 6.12 | Issue the quotation, then try to add an item | Not allowed; **Revise** sends it back to draft |
+| 6.13 | **Print quotation** | Letterhead, items by tooth, total, payment plan, valid-until date, signature lines |
+| 6.14 | Reception → Dental plans → open the quotation → **Patient accepts** without ticking "signed the printed quotation" | Button stays disabled until ticked; then installments are created |
+| 6.15 | Patient `01001110001` → Treatment plans → **Accept the plan** for Youssef | Accepted online; the dentist sees "Patient accepted online" |
+| 6.16 | Try to accept Amr's expired quotation | Refused: quotation expired |
+| 6.17 | Dentist → accepted plan → **Done** on an item | "Ready to bill" + it appears on the tooth chart; when all items are done the plan is *Completed* |
+| 6.18 | On a crown item → **To lab** | New lab case linked to the plan item |
+| 6.19 | Lab work → open a case → **Back from lab** → **Needs a remake** without a reason | Reason required; remake count goes up |
+| 6.20 | Lab work → **Overdue** tab | The retainer for Ziad (due 2 days ago) |
+| 6.21 | Reception → Complaints → **Log a complaint or request** for a patient | Created with a deadline from the priority |
+| 6.22 | Reception tries to assign it | Not possible (only patient relations / management) |
+| 6.23 | Patient relations assigns it to reception and comments | Moves to *In progress*; reception sees it under "Assigned to me" |
+| 6.24 | Reception → **Resolve** without writing what was done | Required; then *Resolved* (only patient relations can close) |
+| 6.25 | Patient → Complaints & requests → send a request | Appears in patient relations' **Unassigned** list; the patient sees the answer once resolved |
+| 6.26 | Medical director → Clinical lists → **Laser devices** → lower a device's counter | Refused: a counter can't go backwards |
+
+**Accounts:** `nurse@`, `dr.dental@`, `dr.derm@`, `reception@`, `relations@`, `meddir@`, `director@`, patient `01001110001`.
 
 ---

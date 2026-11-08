@@ -32,6 +32,11 @@ app/
                                            (locks it), addenda, release to the patient, vital signs, follow-ups
                        clinical_lists.py   the drug list and the diagnosis list (medical director)
                        visits_api.py       /visits endpoints mounted by doctor, nurse, medical director, reception
+                       laser.py            laser devices and session records (checklist, areas, pulse counter, sign)
+                       dental.py           FDI tooth chart, treatment plans (quotation, acceptance, installments,
+                                           work done → ready to bill), dental labs and lab cases
+                       complaints.py       the complaints & requests desk (assign, deadline by priority, resolve)
+                       laser_api.py, dental_api.py, complaints_api.py   the matching endpoints
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
                      admin, management (owner / general manager), medical_director, reception,
                      patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
@@ -40,6 +45,7 @@ tests/               unit tests (pytest)
 tests/e2e/           end-to-end checks against the running system, e.g.
                      python tests/e2e/appointments_e2e.py http://web:3000 <demo password>
                      python tests/e2e/visits_e2e.py http://web:3000 <demo password>
+                     python tests/e2e/dental_laser_e2e.py http://web:3000 <demo password>
 ```
 
 Each role's API lives at `/api/<role>` (underscores become dashes, e.g. `/api/medical-director`).
@@ -82,6 +88,14 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
   reason; both are recorded in the activity log when the visit is signed.
 - Patients see a visit only after the doctor releases it, and then only the plain-language summary and the
   prescription — never the medical note.
+- A laser session is signed only with every safety question answered, a signed consent, and a written reason
+  for any "stop" answer. The device counter before/after must equal the recorded pulses (+ test pulses), or the
+  difference is explained; signing locks the record and moves the device counter forward.
+- The tooth chart is a history (append-only; a wrong entry is voided with a reason). Plan prices come from the
+  price list and are frozen by the database once quoted; an expired quotation can't be accepted. Work marked done
+  becomes "ready to bill" for billing (requirement 5); installments are scheduled, payments come with billing.
+- Complaints get a response deadline from their priority (urgent 4 h, high 24 h, normal 48 h, low 72 h); their
+  history is append-only. Patients see the status and the resolution, never internal comments.
 
 ## Database changes
 
