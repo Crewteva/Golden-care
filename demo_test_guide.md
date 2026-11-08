@@ -15,7 +15,7 @@ Add `?lang=en` to any address to see it in English; the language switch is in th
 | 3 | Reception & appointments | ✅ Appointments · ✅ complaints & requests desk · ⏳ message monitor (with req. 10) | 4, 6 |
 | 4 | Doctor's work (clinical) | ✅ Done (money links of plans and lab costs connect in req. 5–7) | 5, 6 |
 | 5 | Billing, payments & cashier | ✅ Part A done (invoices, payments, shifts, packages, installments, approvals, refunds) · ⏳ Paymob online payment and Tax Authority e-receipts (need the clinic's accounts) | 7 |
-| 6 | Accounting & finance (built together with 5) | ⏳ Part B (next) | — |
+| 6 | Accounting & finance (built together with 5) | ✅ Done (journal, expenses, cash & bank, doctor payouts, month close, reports) · ⏳ salaries post from HR (req. 8) | 8 |
 | 7 | Stock, purchasing & medical devices | ⏳ | — |
 | 8 | HR & salaries | ⏳ | — |
 | 9 | Public website & marketing | ⏳ | — |
@@ -52,7 +52,8 @@ Staff sign in with their **e-mail**; patients sign in with their **mobile number
 | Doctor — gynecology | `dr.obgyn@demo.goldencare.local` | Dr. Nermeen Fathy | No | My day, own patients |
 | Nurse | `nurse@demo.goldencare.local` | Aya Mostafa | No | Today's appointments, patient files, alerts, uploads |
 | Cashier | `cashier@demo.goldencare.local` | Mahmoud Ibrahim | No | Cashier desk, shifts, invoices, payments, refunds, price list |
-| Accountant / Auditor | `accountant@…`, `auditor@…` (`@demo.goldencare.local`) | — | Yes | Invoices, shifts & cash, refunds (read-only); the auditor also sees the activity log |
+| Accountant | `accountant@demo.goldencare.local` | Sherif Nabil | Yes | Accounting: journal, expenses, cash & bank, doctor payouts, month close, reports, chart of accounts; invoices, shifts & refunds (read-only) |
+| Auditor | `auditor@demo.goldencare.local` | Amr Lotfy | Yes | Accounting and billing, read-only; the activity log |
 | HR / Inventory / Marketing | `hr@…`, `inventory@…`, `marketing@…` (`@demo.goldencare.local`) | — | HR: yes | Sign-in and home page only for now |
 | **Patient** | mobile **`01001110001`** | Omar Youssef | No | Patient portal: appointments, online booking, results, family, my bills |
 
@@ -421,7 +422,7 @@ stage (one overdue, one remake); 6+ complaints including one past its deadline.
 
 **Not connected yet:** **Paymob online payment** and **Tax Authority e-receipts** aren't built. Invoices only
 carry an e-receipt status field for later; both need the clinic's Paymob account and Tax Authority credentials.
-Accounting (journal entries, profit & loss, doctor payouts) comes in part B.
+Accounting (journal entries, profit & loss, doctor payouts) is in section 8.
 
 **Where:**
 - Cashier → **Cashier desk**, **My shift**, **Invoices**, **Refunds**, **Shift reports**; a patient's name opens their account
@@ -486,5 +487,115 @@ refund. Teeth whitening has 14% VAT. No shift is open, so testing starts by open
 
 **Accounts:** `cashier@`, `reception@`, `director@` or `owner@` (2-step on first sign-in), `accountant@`,
 `auditor@`, patient `01001110001`.
+
+---
+
+## 8. Accounting & finance — part B (requirement 6)
+
+**Covers:**
+- **Chart of accounts:** a starter list (cash drawers, petty cash, bank, card / InstaPay / wallet money to settle,
+  patient receivables and credit, unused package sessions, doctors and labs payable, VAT, capital, income and expense
+  accounts). The accountant adds, renames and switches off accounts. The accounts that billing posts to are marked
+  *system*: they can be renamed but never switched off.
+- **Automatic journal:** every invoice, receipt, void, refund, closed shift (cash over / short), package session and
+  lab case posts its own double entry. Nobody types it, and what billing did before accounting existed was posted
+  once (backfill). Each invoice line keeps its service, doctor, specialty and branch, so income can be analysed.
+- **Manual entries** (`JE-…`) for adjustments, accruals and opening balances. Debits must equal credits; patient
+  accounts (receivables, credit, packages) can only be moved by billing. A mistake is fixed by **reversing** the
+  entry, once, never by editing it.
+- **Expenses** (`EX-…`) by category, paid from the bank or petty cash (never from a cashier's drawer), with an optional
+  receipt photo / PDF. A wrong expense is voided, which posts the reversal.
+- **Cash & bank:** the balance of every money account; transfers (`TR-…`), e.g. petty cash top-up from the bank or
+  depositing the drawer's cash; you can't move more than an account holds.
+- **Card & InstaPay settlement:** pick the card / InstaPay / wallet payments the provider paid, enter what reached
+  the bank and the fee. The fee goes to *Bank & card fees*. A payment is settled only once.
+- **Doctor payouts** (monthly): shares from the issued invoices − the lab work the doctor carries = net. The
+  accountant prepares a statement (`DP-…`), management approves or rejects it (with a note), then the accountant
+  records the payment. One payout per doctor per month, and only for a month that has ended. Lab bills are paid from
+  the same page (*Labs* tab).
+- **Month close:** a checklist (open shifts, payments not settled, payouts not prepared…). The accountant asks for
+  the close, management approves, and the month is **locked**: nothing can be posted, expensed or voided with a date
+  inside it. Management can reopen the most recent closed month, with a reason.
+- **Reports** (all printable and exportable to CSV): Profit & loss, income by service / doctor / specialty / branch,
+  daily cash, trial balance, account ledger, receivables aging, patient credit, VAT. The financial year starts in
+  January.
+- **Who does what:** the accountant posts (entries, expenses, transfers, settlements, payouts, close requests) and
+  manages the chart; management approves payouts and month closes and reads every report; the auditor reads
+  everything and changes nothing. Other roles have no accounting pages.
+
+**Not connected yet:** salaries post from HR (requirement 8); the *Salaries* account is ready for it. Paymob and
+Tax Authority e-receipts are still not built (see section 7).
+
+**Where:**
+- Accountant → **Accounting** (overview), **Journal**, **Expenses**, **Cash & bank** (*Settlements* tab),
+  **Doctor payouts** (*Labs* tab), **Month close**, **Financial reports**, **Chart of accounts**; shortcuts on Home
+- Management → **Accounting**, **Doctor payouts** (approve / reject), **Month close** (approve / reopen),
+  **Financial reports**; the overview shows what waits for them
+- Auditor → **Accounting**, **Journal**, **Expenses**, **Financial reports** (the other pages open from links, read-only)
+- An entry's reference opens the invoice, receipt, shift, expense or payout it came from
+
+**Demo data:** all of the demo billing is in the journal, plus a few invoices spread over last month; an opening
+balance of 400,000 EGP capital in the bank; a 6,000 EGP petty cash fund; expenses (rent 28,000, electricity,
+internet, supplies, maintenance, marketing flyers) from the bank and petty cash; the drawers' cash deposited at the
+bank; a card terminal settlement with a 2.25% fee; a part payment to a dental lab; **last month's doctor payouts
+prepared** (waiting for management); and **last month's close requested** (waiting for management). Every amount is
+invented. Running the automated tests changes this state (payouts approved, a month closed and reopened…).
+
+### How to use
+- **Post an expense** (accountant): Expenses → *New expense* → category, amount, date, paid from (bank or petty cash),
+  payee, receipt number, receipt file → *Save*.
+- **Manual entry:** Journal → *Manual entry* → date, memo → lines (account, debit or credit) → the footer shows the
+  difference until it balances → *Post entry*. To undo it, open the entry → *Reverse*.
+- **Move money:** Cash & bank → *Move money* → from, to, amount, reference → *Record transfer*.
+- **Card money arrived in the bank:** Cash & bank → *Settlements* → choose the method → tick the payments → enter the
+  fee and the bank reference → *Record settlement*.
+- **Pay the doctors** (after the month ends): Doctor payouts → choose the month → *Prepare* per doctor → *Send for
+  approval* → management → *Review & approve* → the accountant → *Pay* (choose the account it's paid from).
+  *Print statement* gives a sheet with signature lines for the doctor.
+- **Close a month:** Month close → check the list → *Request close* → management → *Review close* → *Approve & close*
+  (or *Reject* with a note).
+- **Reports:** Financial reports → pick the report and the dates → *Print* or *Export CSV*.
+
+### Test cases
+
+| # | Do this | Expected |
+|---|---|---|
+| 8.1 | Accountant → Accounting | Money in each account, this month vs last (income, expenses, profit), what's owed both ways, what waits for action |
+| 8.2 | Financial reports → **Trial balance**; then the overview's **Books vs. records** card | Total debits = total credits; receivables and patient credit show *Matches* (they equal billing's own records) |
+| 8.3 | Journal | Invoices, receipts and shifts are already there with an *Automatic* tag; opening one shows its lines and a link to the invoice |
+| 8.4 | Journal → *Manual entry* with debit 1,000 and credit 900 | *Post entry* stays disabled; the server refuses it as unbalanced |
+| 8.5 | Manual entry on the *Patient receivables* account | Refused: patient accounts are moved by billing only |
+| 8.6 | Manual entry dated tomorrow | Refused: no entries dated in the future |
+| 8.7 | Post a balanced manual entry, then *Reverse* it twice | The first reversal posts the mirror entry; the second is refused (already reversed) |
+| 8.8 | Open an automatic entry (from an invoice) | No *Reverse* button; fixing it goes through billing (void) |
+| 8.9 | New expense paid from *Cash drawers* | Not offered; the server refuses it too (use petty cash or the bank) |
+| 8.10 | New expense with a `.docx` receipt | Refused: PDF / JPG / PNG only |
+| 8.11 | New expense *Supplies* 1,200 EGP from the bank with a PDF receipt | `EX-…` posted: debit Supplies & consumables, credit Bank; the receipt opens from the list |
+| 8.12 | *Void* that expense with a reason | Status *Void*; a reversal entry appears in the journal |
+| 8.13 | Cash & bank → *Move money* → more than petty cash holds | Refused: not enough in the account |
+| 8.14 | Cashier takes a card payment → accountant → Cash & bank → *Settlements* | The payment is listed as waiting; *Record settlement* with a 2.5 EGP fee → the bank goes up, *Bank & card fees* takes the fee |
+| 8.15 | Try to settle the same payment again | Refused: already settled |
+| 8.16 | Doctor payouts → last month → open `DP-000001` | Statement: shares by service − lab work = net; *Print statement* gives an A4 sheet with signature lines |
+| 8.17 | Prepare a second payout for the same doctor and month | Refused: one payout per doctor and month |
+| 8.18 | Prepare a payout for **this** month | Refused: the month hasn't ended |
+| 8.19 | Accountant → a prepared payout that isn't approved yet | No *Pay* button; the server refuses payment too (needs management's approval) |
+| 8.20 | Management → *Review & approve* → *Reject* without a note | *Reject* stays disabled; with a note it's rejected and the accountant can prepare it again |
+| 8.21 | Management approves → accountant → *Pay* | *Paid*; Doctors payable goes down by the shares |
+| 8.22 | Month close → last month | *Waiting for management*, with the checklist and who asked |
+| 8.23 | The current month | No *Request close* (the month hasn't ended); the server refuses it too |
+| 8.24 | Management → *Review close* → *Approve & close*; then the accountant posts an entry or an expense dated in it | Closed 🔒; both are refused (month closed) |
+| 8.25 | Management → *Reopen* | A reason is required; then it's open again (only the latest closed month) |
+| 8.26 | Chart of accounts → add an expense account with a code already used | Refused: code taken; a new code works and it's offered in New expense |
+| 8.27 | Switch off *Bank* | Refused (system account); renaming it works |
+| 8.28 | Financial reports → **Profit & loss** | Income − expenses = profit, by account, for the dates chosen |
+| 8.29 | **Income by** service / doctor / specialty / branch | Totals match the P&L's service + package income |
+| 8.30 | **Account ledger** → Bank | Opening, every movement with a running balance, closing = the bank balance on Cash & bank |
+| 8.31 | **Daily cash**, **Aging**, **Patient credit**, **VAT** → *Print* and *Export CSV* | A clean A4 print without the menus; the CSV opens in Excel with Arabic intact |
+| 8.32 | Auditor → any accounting page | Everything readable; no post, approve or edit buttons; the server refuses changes |
+| 8.33 | Management → Journal or Chart of accounts by URL | Read-only; posting and editing the chart are refused |
+| 8.34 | Reception → `/dashboard/reception/accounting` | No accounting pages |
+
+**Accounts:** `accountant@` (posts), `director@` or `owner@` (approve), `auditor@` (read-only), `cashier@` for 8.14 —
+all with 2-step on first sign-in except the cashier.
 
 ---

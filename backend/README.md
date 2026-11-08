@@ -47,6 +47,19 @@ app/
                        billing_schemas.py  request models
                        billing_api.py      /billing endpoints mounted by cashier, reception, management, accountant,
                                            auditor (what each may do comes from billing.* permissions)
+                     and accounting (requirement 6, part B):
+                       accounting.py         chart of accounts, double-entry posting (balanced, dated, not in a
+                                             closed month), the automatic journal from billing (sync + backfill),
+                                             manual entries and reversals, month close (request / approve / reopen)
+                       accounting_ops.py     expenses (receipt file, void), transfers, card / InstaPay / wallet
+                                             settlements with fees, lab payments, monthly doctor payouts
+                                             (prepare → approve / reject → pay), money balances
+                       accounting_reports.py overview, P&L, income by service / doctor / specialty / branch, daily
+                                             cash, trial balance, ledger, receivables aging, patient credit, VAT,
+                                             books-vs-billing reconciliation
+                       accounting_schemas.py request models
+                       accounting_api.py     /accounting endpoints mounted by accountant, management, auditor
+                                             (accounting.view / post / approve / setup permissions)
   users/<role>/      one folder per role with that role's APIs (routes.py, service.py, schemas.py)
                      admin, management (owner / general manager), medical_director, reception,
                      patient_relations, doctor, nurse, cashier, accountant, hr, inventory, marketing,
@@ -57,6 +70,9 @@ tests/e2e/           end-to-end checks against the running system, e.g.
                      python tests/e2e/visits_e2e.py http://web:3000 <demo password>
                      python tests/e2e/dental_laser_e2e.py http://web:3000 <demo password>
                      python tests/e2e/billing_e2e.py http://web:3000 <demo password>
+                     python tests/e2e/accounting_e2e.py http://web:3000 <demo password>
+                     (the e2e scripts set up 2-step for the accounts that need it; reset it afterwards
+                     if people will sign in to the demo by hand)
 ```
 
 Each role's API lives at `/api/<role>` (underscores become dashes, e.g. `/api/medical-director`).
@@ -120,6 +136,17 @@ Roles & permissions page; defaults are in `storage/seed.py` (`PERMISSION_DEFAULT
 - Doctor shares (percent or fixed, optionally after the service's direct cost) are stored per line when issued
   and only returned to management, never to the cashier or the patient.
 - Not built yet: Paymob online payment and Tax Authority e-receipts (invoices carry an `eta_status` column for later).
+- The books are double-entry: every entry balances (checked by the database), journal entries are append-only, and a
+  mistake is fixed by a reversal. Billing posts its own entries (invoice, receipt, void, refund, shift difference,
+  package session, lab case) the next time the journal is read, once per source record; nobody can post to patient
+  receivables, patient credit or unused packages by hand, so they always equal billing's own figures.
+- Expenses are paid from the bank or petty cash, never from a cashier's drawer; card / InstaPay / wallet money reaches
+  the bank only through a settlement (fee to *Bank & card fees*), and each payment is settled once.
+- Doctor payouts: shares of last month's issued invoices − lab work the doctor carries; one per doctor and month,
+  only after the month ends. The accountant prepares and pays; management approves or rejects (with a note).
+- Month close: the accountant requests, management approves, and nothing can be dated inside a closed month.
+  Management can reopen the latest closed month with a reason. The financial year starts in January.
+- Salaries post from HR later (requirement 8); the account is already in the chart.
 
 ## Database changes
 

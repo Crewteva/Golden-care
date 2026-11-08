@@ -8,7 +8,7 @@ which also forwards `/api` to the backend (`nginx.conf`).
 ```
 src/
   main.jsx, App.jsx    entry point and all page routes
-  api/                 functions that call the backend (auth, admin, patients, patient portal, settings, appointments, visits, billing)
+  api/                 functions that call the backend (auth, admin, patients, patient portal, settings, appointments, visits, billing, accounting)
   auth/                signed-in user (AuthContext), page guards, roles & where each one goes
   components/          shared UI: buttons, fields, modal, toasts, activity log, role home
     patients/          the patient file used by several roles: directory, file page, form, duplicate panel,
@@ -27,6 +27,11 @@ src/
                        (split methods), patient account, shifts and shift reports, refunds, approvals, invoices
                        list, installments due, setup (packages, doctor shares, billing rules), invoice and 80 mm
                        receipt prints; meta.jsx holds shared labels, money formatting and the patient finder
+    accounting/        overview, journal (manual entry, reversal), expenses (receipt upload), cash & bank
+                       (transfers, settlements), doctor payouts and printable statement, lab payments, month
+                       close, financial reports (print + CSV), chart of accounts; routes.jsx lists the pages and
+                       each role picks the ones in its side menu; meta.jsx holds shared labels, Arabic memos,
+                       CSV export and the useAccounting hook (permissions, base path)
   layouts/             AuthLayout (sign-in screens), DashboardLayout (sidebar + top bar)
   i18n/                language switch and shared Arabic/English text
   lib/                 formatting, clinic time (always Cairo time), error messages, password rules, activity labels

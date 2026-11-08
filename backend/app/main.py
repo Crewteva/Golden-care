@@ -56,5 +56,3 @@ async def guard_and_log(request: Request, call_next):
 
 
 app.include_router(api_router)
-from app.devshot import router as _devshot  # TEMP
-app.include_router(_devshot)  # TEMP
