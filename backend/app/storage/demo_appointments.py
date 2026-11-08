@@ -36,6 +36,7 @@ def seed_demo_appointments(conn: psycopg.Connection) -> None:
     now = clinic_time.now()
     today = now.date()
     total = 0
+    upcoming: dict = {}  # at most 2 future visits per patient, so demo patients can still book online
 
     for local, preferred in PREFERRED.items():
         doc = conn.execute("SELECT id FROM users WHERE email = %s", (f"{local}@demo.goldencare.local",)).fetchone()
@@ -83,11 +84,13 @@ def seed_demo_appointments(conn: psycopg.Connection) -> None:
                         t += timedelta(minutes=15)
                         continue
                     patient_id = pool[(total + offset) % len(pool)] if rng.random() < 0.8 else rng.choice(list(patients.values()))
-                    if patient_id in booked_today:
-                        patient_id = rng.choice(pool)
-                        if patient_id in booked_today:
+                    if patient_id in booked_today or (t > now and upcoming.get(patient_id, 0) >= 2):
+                        patient_id = rng.choice(list(patients.values()))
+                        if patient_id in booked_today or (t > now and upcoming.get(patient_id, 0) >= 2):
                             t += timedelta(minutes=15)
                             continue
+                    if t > now:
+                        upcoming[patient_id] = upcoming.get(patient_id, 0) + 1
                     end = t + duration
                     status, extra = _status_for(rng, t, end, now, in_room_used, arrived_used)
                     if status == "in_room":
