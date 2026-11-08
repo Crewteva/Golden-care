@@ -7,7 +7,6 @@ from fastapi.responses import RedirectResponse
 
 from app.core.errors import AppError
 from app.core.security import hash_token, new_session_token
-from app.core.session import set_session_cookie
 from app.storage.db import get_conn
 
 router = APIRouter()
@@ -32,5 +31,5 @@ def devshot(key: str, email: str, role: str, request: Request, next: str = "/", 
     )
     conn.commit()
     resp = RedirectResponse(next if next.startswith("/") else "/", status_code=302)
-    set_session_cookie(resp, token, "staff")
+    resp.set_cookie("gc_session", token, max_age=7200, httponly=True, secure=False, samesite="lax", path="/")
     return resp
