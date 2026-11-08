@@ -29,7 +29,7 @@ export const DAY_SHORT = {
 export function fmtTime(value, locale) {
   if (!value) return ''
   const [h, m] = value.split(':').map(Number)
-  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(new Date(2000, 0, 1, h, m))
+  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(2000, 0, 1, h, m))
 }
 
 export function fmtMoney(value, locale) {

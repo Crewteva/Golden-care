@@ -73,7 +73,7 @@ export default function TodayBoard() {
   const [day, setDayState] = useState(params.get('date') || dayKey())
   const [doctor, setDoctor] = useState('')
   const [filter, setFilter] = useState('all')
-  const [open, setOpen] = useState(null)
+  const [open, setOpen] = useState(params.get('open'))
   const [, tick] = useState(0)
   const rules = useAsync(() => api.rules(), [api])
   const data = useAsync(() => api.day({ on: day }), [day, api])

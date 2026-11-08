@@ -38,7 +38,7 @@ function DayGrid({ data, onOpen }) {
           <div className="cal-hours">
             {hours.map((h) => (
               <span key={h} style={{ top: (h - from) * PX }} className="num">
-                {new Intl.DateTimeFormat(locale, { hour: 'numeric' }).format(new Date(2000, 0, 1, h / 60))}
+                {new Intl.DateTimeFormat(locale, { hour: 'numeric', hour12: true }).format(new Date(2000, 0, 1, h / 60))}
               </span>
             ))}
           </div>

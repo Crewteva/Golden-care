@@ -19,7 +19,7 @@ export const weekdayOf = (key) => new Date(`${key}T12:00:00Z`).getUTCDay()
 export const saturdayOf = (key) => addDays(key, -((weekdayOf(key) + 1) % 7))
 
 export function clock(iso, locale) {
-  return new Intl.DateTimeFormat(locale, { timeZone: CLINIC_TZ, hour: 'numeric', minute: '2-digit' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(locale, { timeZone: CLINIC_TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso))
 }
 
 export function dayLabel(key, locale, options = { weekday: 'long', day: 'numeric', month: 'long' }) {
