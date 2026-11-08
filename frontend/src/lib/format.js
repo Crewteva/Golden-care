@@ -1,21 +1,24 @@
+// Every date and time is shown on the clinic's clock (Cairo), whatever the device's time zone.
+const TZ = 'Africa/Cairo'
+
 export function fmtDateTime(value, locale) {
   if (!value) return ''
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', hour12: true, timeZone: TZ }).format(new Date(value))
 }
 
 export function fmtDate(value, locale) {
   if (!value) return ''
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: TZ }).format(new Date(value))
 }
 
 export function fmtLongDate(value, locale) {
-  return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(
+  return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ }).format(
     value ? new Date(value) : new Date(),
   )
 }
 
 export function fmtDay(value, locale) {
-  return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: TZ }).format(new Date(value))
 }
 
 const UNITS = [

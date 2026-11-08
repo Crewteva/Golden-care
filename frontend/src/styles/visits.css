@@ -12,7 +12,7 @@
 /* header */
 .visit-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(260px, 1fr) auto;
   gap: 20px;
   align-items: center;
   position: relative;
@@ -30,10 +30,17 @@
   font-size: clamp(1.35rem, 2.4vw, 1.8rem);
 }
 .visit-head .eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
   font-family: var(--font-display);
   font-size: 0.78rem;
   color: var(--gold-600);
   margin-bottom: 4px;
+}
+.visit-head .eyebrow .badge {
+  margin-inline-start: 6px;
 }
 .visit-head .page-actions {
   align-items: center;
@@ -427,6 +434,16 @@
 .rx-sig {
   font-size: 0.88rem;
   color: var(--ink-800);
+}
+.rx-sig em,
+.portal-rx em,
+.rx-warning em {
+  font-style: normal;
+  color: var(--ink-700);
+}
+.rx-warning em {
+  color: inherit;
+  font-weight: 600;
 }
 .rx-note {
   display: block;

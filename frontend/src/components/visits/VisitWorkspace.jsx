@@ -293,7 +293,7 @@ export default function VisitWorkspace() {
       <header className="card card-pad visit-head">
         <Avatar name={pick(v, 'patient_name')} size="lg" />
         <div style={{ minWidth: 0 }}>
-          <div className="eyebrow"><span className="mrn">{v.ref}</span> · {dayLabel(day, locale)}{appt && <> · <bdi className="num">{clock(appt.starts_at, locale)}</bdi></>}</div>
+          <div className="eyebrow"><span className="mrn">{v.ref}</span> · {dayLabel(day, locale)}{appt && <> · <bdi className="num">{clock(appt.starts_at, locale)}</bdi></>} <VisitBadge visit={v} /></div>
           <h1>{pick(v, 'patient_name')}</h1>
           <div className="file-facts">
             <span className="chip"><span className="mrn">{v.mrn}</span></span>
@@ -303,7 +303,6 @@ export default function VisitWorkspace() {
           </div>
         </div>
         <div className="page-actions">
-          <VisitBadge visit={v} />
           {draft && writable && <SaveState {...save} />}
           <Link to={`${base}/patients/${v.patient_id}`} className="btn btn-ghost"><Icon name="fileSearch" size={18} />{tx('ملف المريض', 'Patient file')}</Link>
           {!draft && data.rx.length > 0 && <Link to={`${base}/visits/${v.id}/print`} className="btn btn-ghost"><Icon name="printer" size={18} />{tx('طباعة الروشتة', 'Print prescription')}</Link>}
