@@ -10,10 +10,10 @@ import { useAsync, useDebounced } from '../useAsync'
 import { useI18n } from '../../i18n/I18nContext'
 import { errorText, fieldText } from '../../lib/errors'
 import { fmtDateTime } from '../../lib/format'
-import { GROUPS, SourceChip, SourceLink, accountLabel, amt, cleanAmount, dayLabelShort, money, num, today, useAccounting } from './meta'
+import { GROUPS, SourceChip, SourceLink, accountLabel, amt, cleanAmount, dayLabelShort, memoText, money, num, today, useAccounting } from './meta'
 
 export default function Journal() {
-  const { tx, pick, locale } = useI18n()
+  const { tx, pick, locale, lang } = useI18n()
   const { api, base, canPost } = useAccounting()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') || '')
@@ -62,8 +62,8 @@ export default function Journal() {
                   {data.items.map((e) => (
                     <tr key={e.id} className={e.reversed_by_id ? 'row-muted' : ''}>
                       <td><Link to={`${base}/journal/${e.id}`} className="mrn">{e.ref}</Link><div><SourceChip type={e.source_type} /></div></td>
-                      <td><bdi>{dayLabelShort(e.entry_date, locale)}</bdi></td>
-                      <td className="cell-wrap">{e.memo}
+                      <td className="nowrap"><bdi>{dayLabelShort(e.entry_date, locale)}</bdi></td>
+                      <td className="cell-wrap">{memoText(e, lang)}
                         <small className="muted" style={{ display: 'block' }}>{e.source_ref && <span className="mrn">{e.source_ref}</span>}
                           {e.reverses_ref && <> · {tx('يعكس', 'reverses')} <span className="mrn">{e.reverses_ref}</span></>}
                           {e.reversed_by_ref && <> · {tx('عُكس بـ', 'reversed by')} <span className="mrn">{e.reversed_by_ref}</span></>}</small></td>

@@ -96,6 +96,44 @@ export const GROUPS = {
   manual: { ar: 'يدوية', en: 'Manual' },
 }
 
+// Entries posted on their own carry an English memo built from a fixed template; say the same thing in Arabic.
+// Text people typed (manual entries, reasons, notes, expense descriptions) is shown as written.
+const METHOD_AR = { cash: 'نقدًا', card: 'بطاقة', instapay: 'إنستاباي', wallet: 'محفظة', bank_transfer: 'تحويل بنكي' }
+const MEMO_AR = [
+  [/^Invoice (\S+) issued$/, (m) => `إصدار الفاتورة ${m[1]}`],
+  [/^Invoice (\S+) voided$/, (m) => `إلغاء الفاتورة ${m[1]}`],
+  [/^Package (\S+): session used \((\S+)\)$/, (m) => `الباقة ${m[1]}: استخدام جلسة (${m[2]})`],
+  [/^Session given back: invoice (\S+) voided$/, (m) => `إرجاع جلسة للباقة: أُلغيت الفاتورة ${m[1]}`],
+  [/^Package (\S+) fully used$/, (m) => `اكتملت الباقة ${m[1]}`],
+  [/^Package (\S+) cancelled$/, (m) => `إلغاء الباقة ${m[1]}`],
+  [/^Receipt (\S+) for (\S+)$/, (m) => `الإيصال ${m[1]} عن الفاتورة ${m[2]}`],
+  [/^Receipt (\S+) \(deposit to credit\)$/, (m) => `الإيصال ${m[1]} (إيداع في رصيد المريض)`],
+  [/^Paid on voided (\S+) kept as credit$/, (m) => `المدفوع على الفاتورة الملغاة ${m[1]} أصبح رصيدًا للمريض`],
+  [/^Refund (\S+) paid \((\w+)\)$/, (m) => `صرف الاسترداد ${m[1]} (${METHOD_AR[m[2]] || m[2]})`],
+  [/^Shift (\S+): cash (over|short) — ([\s\S]*)$/, (m) => `الوردية ${m[1]}: ${m[2] === 'over' ? 'زيادة' : 'عجز'} نقدية${m[3] ? ` — ${m[3]}` : ''}`],
+  [/^Lab work (\S+) received from (.+)$/, (m) => `استلام عمل المعمل ${m[1]} من ${m[2]}`],
+  [/^Expense (\S+) voided: ([\s\S]*)$/, (m) => `إلغاء المصروف ${m[1]}: ${m[2]}`],
+  [/^Settlement of (\d+) (\w+) payments into .+$/, (m) => `تسوية ${m[1]} دفعة (${METHOD_AR[m[2]] || m[2]}) مع البنك`],
+  [/^Doctor payout (\S+) for (\S+)$/, (m) => `صرف مستحقات الطبيب ${m[1]} عن ${m[2]}`],
+  [/^Payment to (.+)$/, (m) => `دفعة إلى ${m[1]}`],
+  [/^Reversal of (\S+): ([\s\S]*)$/, (m) => `عكس القيد ${m[1]}: ${m[2]}`],
+]
+export function memoText(e, lang) {
+  const memo = e?.memo || ''
+  if (lang !== 'ar' || e?.source_type === 'manual') return memo
+  // "<category>: <description>" and "<from> → <to>: <note>": the accounts are shown beside it, keep what was typed.
+  if (e?.source_type === 'expense') return memo.replace(/^[^:]+:\s*/, '')
+  if (e?.source_type === 'transfer') {
+    const note = memo.match(/^.+? → .+?: ([\s\S]+)$/)
+    return note ? `تحويل: ${note[1]}` : 'تحويل بين الحسابات'
+  }
+  for (const [re, fn] of MEMO_AR) {
+    const m = memo.match(re)
+    if (m) return fn(m)
+  }
+  return memo
+}
+
 export function SourceChip({ type }) {
   const { lang } = useI18n()
   const s = SOURCE[type]

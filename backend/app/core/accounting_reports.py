@@ -143,9 +143,11 @@ def ledger(conn: psycopg.Connection, account_id: int, date_from: date | None, da
     rows = conn.execute(
         """SELECT e.id AS entry_id, e.ref, e.entry_date, e.memo, e.source_type, e.source_ref, l.debit, l.credit, l.memo AS line_memo,
                   p.mrn, p.full_name_ar AS patient_name_ar, p.full_name_en AS patient_name_en,
-                  d.full_name_ar AS doctor_name_ar, d.full_name_en AS doctor_name_en
+                  d.full_name_ar AS doctor_name_ar, d.full_name_en AS doctor_name_en,
+                  sv.name_ar AS service_name_ar, sv.name_en AS service_name_en
            FROM journal_lines l JOIN journal_entries e ON e.id = l.entry_id
            LEFT JOIN patients p ON p.id = l.patient_id LEFT JOIN users d ON d.id = l.doctor_id
+           LEFT JOIN services sv ON sv.id = l.service_id
            WHERE l.account_id = %s AND e.entry_date BETWEEN %s AND %s ORDER BY e.entry_date, e.id, l.id LIMIT 5001""",
         (account_id, date_from, date_to),
     ).fetchall()
