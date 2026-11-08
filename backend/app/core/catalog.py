@@ -143,7 +143,8 @@ def _service_values(conn: psycopg.Connection, body: ServiceIn) -> dict:
         raise field_error("room_type_id", "invalid")
     return {"specialty_id": body.specialty_id, "code": code, "name_ar": clean_name(body.name_ar),
             "name_en": clean_name(body.name_en), "duration_min": body.duration_min, "room_type_id": body.room_type_id,
-            "is_active": body.is_active, "sort_order": body.sort_order}
+            "is_active": body.is_active, "sort_order": body.sort_order, "clinical_record": body.clinical_record,
+            "dental_result": body.dental_result if body.clinical_record == "dental" else None}
 
 
 def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id: int | None = None) -> dict:
@@ -152,9 +153,10 @@ def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id
         with friendly_db_errors("code"), conn.transaction():
             row = conn.execute(
                 """
-                INSERT INTO services (specialty_id, code, name_ar, name_en, duration_min, room_type_id, is_active, sort_order)
+                INSERT INTO services (specialty_id, code, name_ar, name_en, duration_min, room_type_id, is_active, sort_order,
+                                      clinical_record, dental_result)
                 VALUES (%(specialty_id)s, %(code)s, %(name_ar)s, %(name_en)s, %(duration_min)s, %(room_type_id)s,
-                        %(is_active)s, %(sort_order)s)
+                        %(is_active)s, %(sort_order)s, %(clinical_record)s, %(dental_result)s)
                 RETURNING *
                 """,
                 values,
@@ -175,7 +177,8 @@ def save_service(conn: psycopg.Connection, ctx: Ctx, body: ServiceIn, service_id
             """
             UPDATE services SET specialty_id = %(specialty_id)s, code = %(code)s, name_ar = %(name_ar)s, name_en = %(name_en)s,
                    duration_min = %(duration_min)s, room_type_id = %(room_type_id)s, is_active = %(is_active)s,
-                   sort_order = %(sort_order)s, updated_at = now()
+                   sort_order = %(sort_order)s, clinical_record = %(clinical_record)s, dental_result = %(dental_result)s,
+                   updated_at = now()
             WHERE id = %(id)s RETURNING *
             """,
             {**values, "id": service_id},

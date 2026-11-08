@@ -1,5 +1,6 @@
 from datetime import date, time
 from decimal import Decimal
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -32,6 +33,9 @@ class ServiceIn(BaseModel):
     room_type_id: int | None = None
     is_active: bool = True
     sort_order: int = Field(default=0, ge=0, le=999)
+    # which clinical record the service needs, and (dental) what the tooth chart shows once it's done
+    clinical_record: Literal["laser", "dental"] | None = None
+    dental_result: Literal["filling", "crown", "root_canal", "extracted", "implant", "bridge", "sealant", "veneer"] | None = None
     # only used when creating: the service's first standard price
     price: FirstPriceIn | None = None
 

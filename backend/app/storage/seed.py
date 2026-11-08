@@ -63,6 +63,13 @@ PERMISSIONS = [
     ("visits.vitals", "clinical", "تسجيل العلامات الحيوية", "Record vital signs"),
     ("prescriptions.restricted", "clinical", "وصف الأدوية المقيّدة", "Prescribe restricted medicines"),
     ("clinical_lists.manage", "clinical", "إدارة قوائم الأدوية والتشخيصات", "Manage drug & diagnosis lists"),
+    ("laser.record", "clinical", "تسجيل جلسات الليزر", "Record laser sessions"),
+    ("dental.chart", "dental", "تسجيل خريطة الأسنان", "Record the dental chart"),
+    ("dental.plans", "dental", "خطط علاج الأسنان وعروض الأسعار", "Dental treatment plans & quotations"),
+    ("dental.plans_view", "dental", "عرض خطط العلاج وتسجيل موافقة المريض", "View plans & record patient acceptance"),
+    ("dental.lab", "dental", "متابعة أعمال المعمل", "Track dental lab work"),
+    ("complaints.create", "complaints", "تسجيل شكوى أو طلب", "Log complaints & requests"),
+    ("complaints.manage", "complaints", "متابعة وحل الشكاوى والطلبات", "Handle & resolve complaints"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -102,6 +109,13 @@ PERMISSION_DEFAULTS = {
     "visits.vitals": CLINICAL,
     "prescriptions.restricted": ["doctor"],
     "clinical_lists.manage": ["medical_director"],
+    "laser.record": ["doctor", "nurse"],
+    "dental.chart": ["doctor"],
+    "dental.plans": ["doctor"],
+    "dental.plans_view": ["reception", "patient_relations", "medical_director", "management"],
+    "dental.lab": ["doctor", "nurse", "reception"],
+    "complaints.create": ["reception", "patient_relations", "nurse", "cashier", "doctor"],
+    "complaints.manage": ["patient_relations", "management"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -131,6 +145,7 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_appointments import seed_demo_appointments
     from app.storage.demo_settings import seed_demo_settings
     from app.storage.demo_visits import seed_clinical_lists, seed_demo_visits
+    from app.storage.demo_dental import seed_demo_complaints, seed_demo_dental
 
     with conn.transaction():
         _roles_and_permissions(conn)
@@ -143,6 +158,8 @@ def run_seed(conn: psycopg.Connection) -> None:
             seed_demo_appointments(conn)
             seed_clinical_lists(conn)
             seed_demo_visits(conn)
+            seed_demo_dental(conn, branch_id)
+            seed_demo_complaints(conn)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:

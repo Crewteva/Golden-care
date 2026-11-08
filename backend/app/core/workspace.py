@@ -77,4 +77,35 @@ def workspace_home(conn: psycopg.Connection, ctx: Ctx) -> dict:
         from app.core.visits import follow_ups
 
         summary["follow_ups"] = len(follow_ups(conn))
+    if "dental.lab" in ctx.permissions:
+        summary["lab_cases"] = conn.execute(
+            """
+            SELECT count(*) FILTER (WHERE status IN ('ordered', 'sent', 'remake')) AS at_lab,
+                   count(*) FILTER (WHERE status = 'returned') AS ready,
+                   count(*) FILTER (WHERE status IN ('ordered', 'sent', 'remake') AND due_on < current_date) AS overdue
+            FROM lab_cases WHERE %(doctor)s::uuid IS NULL OR doctor_id = %(doctor)s::uuid
+            """,
+            {"doctor": doctor},
+        ).fetchone()
+    if "dental.plans" in ctx.permissions or "dental.plans_view" in ctx.permissions:
+        mine = ctx.user_id if "dental.plans_view" not in ctx.permissions else None
+        summary["plans"] = conn.execute(
+            """
+            SELECT count(*) FILTER (WHERE status = 'quoted' AND valid_until >= current_date) AS awaiting,
+                   count(*) FILTER (WHERE status = 'accepted') AS in_progress,
+                   count(*) FILTER (WHERE status = 'draft') AS draft
+            FROM treatment_plans WHERE %(doctor)s::uuid IS NULL OR doctor_id = %(doctor)s::uuid
+            """,
+            {"doctor": mine},
+        ).fetchone()
+    if "complaints.create" in ctx.permissions or "complaints.manage" in ctx.permissions:
+        manager = "complaints.manage" in ctx.permissions
+        summary["tickets"] = conn.execute(
+            """
+            SELECT count(*) FILTER (WHERE status IN ('open', 'in_progress')) AS open,
+                   count(*) FILTER (WHERE status IN ('open', 'in_progress') AND due_at < now()) AS overdue
+            FROM tickets WHERE %(all)s OR created_by = %(me)s OR assigned_to = %(me)s
+            """,
+            {"all": manager, "me": ctx.user_id},
+        ).fetchone()
     return summary

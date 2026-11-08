@@ -6,8 +6,9 @@ import psycopg
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import FileResponse
 
-from app.core import files, visits
+from app.core import complaints, dental, files, visits
 from app.core.appointment_schemas import PortalBookIn, PortalCancelIn
+from app.core.clinical_schemas import PortalTicketIn, ReasonIn
 from app.core.session import Ctx, require_role, set_session_cookie
 from app.core.workspace import workspace_home
 from app.storage.db import get_conn
@@ -82,6 +83,36 @@ def my_visits(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends
 @router.get("/visits/{visit_id}")
 def my_visit(visit_id: UUID, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
     return visits.released_one(conn, ctx, service.my_patient_ids(conn, ctx), visit_id)
+
+
+@router.get("/plans")
+def my_plans(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    """Treatment plans I was offered (quotation, installments) and those in progress — for me and my children."""
+    return dental.portal_plans(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.post("/plans/{plan_id}/accept")
+def accept_plan(plan_id: UUID, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    dental.accept(conn, plan_id, ctx=ctx, via="portal", patient_ids=service.my_patient_ids(conn, ctx))
+    return dental.portal_plans(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.post("/plans/{plan_id}/decline")
+def decline_plan(plan_id: UUID, body: ReasonIn, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    dental.decline(conn, plan_id, body.reason, ctx=ctx, via="portal", patient_ids=service.my_patient_ids(conn, ctx))
+    return dental.portal_plans(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.get("/requests")
+def my_requests(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    return complaints.portal_list(conn, service.my_patient_ids(conn, ctx)[0])
+
+
+@router.post("/requests", status_code=201)
+def send_request(body: PortalTicketIn, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    own = service.my_patient_ids(conn, ctx)[0]
+    complaints.portal_create(conn, ctx, own, body)
+    return complaints.portal_list(conn, own)
 
 
 @router.get("/files")
