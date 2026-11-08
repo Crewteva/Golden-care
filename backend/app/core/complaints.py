@@ -148,7 +148,7 @@ def detail(conn: psycopg.Connection, ctx: Ctx, ticket_id) -> dict:
 
 
 def update(conn: psycopg.Connection, ctx: Ctx, ticket_id, body: TicketUpdateIn) -> None:
-    row = _get(conn, ticket_id, lock=True)
+    row = _get(conn, ctx, ticket_id, lock=True)
     manager = _manager(ctx)
     assignee = row["assigned_to"] == ctx.user_id
     changes = {}
