@@ -133,7 +133,7 @@ def create(conn: psycopg.Connection, ctx: Ctx, body: TicketIn) -> dict:
 
 
 def detail(conn: psycopg.Connection, ctx: Ctx, ticket_id) -> dict:
-    row = _get(conn, ticket_id)
+    row = _get(conn, ctx, ticket_id)
     events = conn.execute(
         """
         SELECT e.*, u.full_name_ar AS to_name_ar, u.full_name_en AS to_name_en
