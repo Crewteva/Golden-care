@@ -72,7 +72,7 @@ function SignedView({ data }) {
   const { tx, lang, locale } = useI18n()
   const s = data.session
   const check = counterCheck(formFrom(s, data.areas), null)
-  const answered = Object.entries(s.checklist || {})
+  const answered = data.checklist.items.filter((code) => code in (s.checklist || {})).map((code) => [code, s.checklist[code]])
   const stops = data.checklist.stop
   return (
     <>
