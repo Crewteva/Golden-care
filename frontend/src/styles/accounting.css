@@ -166,8 +166,15 @@
 .money-list li:last-child {
   border-bottom: 0;
 }
+/* code chip + name: .mrn is ltr-isolated, so space it with a gap, not a margin */
+.money-list li > span:first-child,
+.exp-bars li > span:first-child {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
 .money-list .mrn {
-  margin-inline-end: 8px;
   color: var(--gold-200, #e6d3a3);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -472,9 +479,6 @@
   grid-template-columns: 1fr auto;
   gap: 4px 12px;
   font-size: 0.88rem;
-}
-.exp-bars .mrn {
-  margin-inline-end: 6px;
 }
 .exp-bars i,
 .cat-bars i {
@@ -1537,7 +1541,25 @@
     gap: 4px;
   }
   .bars-col small {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .acc-bars .bars-plot {
+    margin-bottom: 34px;
+  }
+  .owed-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .owed-grid .stat {
+    padding: 14px;
+  }
+  .owed-grid .stat-value {
+    font-size: 1.05rem;
+  }
+  .owed-grid .stat-label {
+    font-size: 0.78rem;
   }
   .st-head {
     flex-wrap: wrap;
@@ -1586,10 +1608,12 @@
     width: 100%;
   }
   .recon-row {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
+    row-gap: 2px;
   }
-  .recon-row .num {
-    grid-column: 2;
+  .recon-row .num.muted {
+    grid-column: 2 / -1;
+    font-size: 0.78rem;
   }
   .money-tiles {
     grid-template-columns: 1fr 1fr;
