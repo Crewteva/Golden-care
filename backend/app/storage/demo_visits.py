@@ -217,6 +217,24 @@ TEMPLATES = {
 }
 
 
+# Children (under 12) get their own stories; the summary is written for the parent.
+CHILD_TEMPLATES = {
+    "derm": [TEMPLATES["derm"][3]],
+    "dental": [
+        ("Check-up; pain with sweets on the lower left", "Brushes once a day with help. Sweets most days.",
+         "Early caries 75 occlusal, deep fissures on 36 and 46. Gums healthy. Cooperative child.",
+         ["Dental caries"], "Fluoride varnish today, fissure sealants 36 and 46, small filling 75 next session.",
+         [], 14, "Sealants and filling 75 (child)",
+         "يوجد تسوس بسيط في ضرس لبني. وضعنا فلورايد اليوم، وفي الجلسة القادمة نعمل سد شقوق وحشو صغير. قللوا الحلويات بين الوجبات وساعدوه في التفريش مرتين يوميًا."),
+        ("Sealants and filling as planned", "No pain since last visit.",
+         "Sealants placed on 36 and 46. Composite filling 75 done. Good cooperation.",
+         ["Dental caries"], "Recall in 6 months with fluoride varnish.",
+         [], 180, "Six-month check-up (child)",
+         "تم سد الشقوق والحشو بنجاح. لا يحتاج أدوية. نراه بعد ٦ شهور للكشف الدوري والفلورايد."),
+    ],
+}
+
+
 def seed_clinical_lists(conn: psycopg.Connection) -> None:
     if not conn.execute("SELECT 1 FROM diagnoses LIMIT 1").fetchone():
         specs = {r["name_en"]: r["id"] for r in conn.execute("SELECT id, name_en FROM specialties")}
@@ -259,15 +277,22 @@ def seed_demo_visits(conn: psycopg.Connection) -> None:
         """
     ).fetchall()
     count = 0
+    last_story: dict = {}
     for appt in done:
         local = appt["email"].split("@")[0].replace("dr.", "")
         templates = TEMPLATES.get(local)
         if not templates or (local == "obgyn" and appt["gender"] != "female"):
             continue  # those appointments simply have no demo note; the doctor can still open one
         child = appt["age"] < 12
+        if child:
+            templates = CHILD_TEMPLATES.get(local, templates)
         if appt["gender"] != "female":
             templates = [t for t in templates if "pregnan" not in (t[0] + t[1]).lower()]
-        complaint, history, exam, dx_names, plan, rx, follow_days, follow_note, summary = rng.choice(templates)
+        # the same patient doesn't get the same story twice in a row
+        fresh = [t for t in templates if t[0] != last_story.get(appt["patient_id"])] or templates
+        story = fresh[0] if child else rng.choice(fresh)
+        last_story[appt["patient_id"]] = story[0]
+        complaint, history, exam, dx_names, plan, rx, follow_days, follow_note, summary = story
         if child:  # no adult tablets for children in the demo
             rx = [(n, i) for n, i in rx if drugs.get(n) and drugs[n]["form"] in ("cream", "gel", "ointment", "mouthwash", "other")]
         started = appt["in_room_at"] or appt["starts_at"]
