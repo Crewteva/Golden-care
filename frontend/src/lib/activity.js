@@ -77,6 +77,16 @@ export const ACTIONS = {
   'appointment.cancelled': { ar: 'إلغاء موعد', en: 'Appointment cancelled', tone: 'warn', icon: 'calendar' },
   'appointment.no_show': { ar: 'لم يحضر للموعد', en: 'No-show', tone: 'warn', icon: 'calendar' },
   'appointment.completed': { ar: 'انتهاء زيارة', en: 'Visit finished', tone: 'good', icon: 'checkCircle' },
+  'visit.signed': { ar: 'توقيع زيارة', en: 'Visit signed', tone: 'good', icon: 'pen' },
+  'visit.released': { ar: 'إتاحة ملخص الزيارة للمريض', en: 'Visit released to patient', tone: 'good', icon: 'sparkle' },
+  'visit.addendum': { ar: 'ملاحظة لاحقة على زيارة', en: 'Addendum added', icon: 'edit' },
+  'visit.opened': { ar: 'فتح زيارة طبيب آخر', en: "Opened another doctor's visit", icon: 'eye' },
+  'visit.opened_by_patient': { ar: 'فتح المريض روشتة', en: 'Patient opened a prescription', icon: 'eye' },
+  'vitals.recorded': { ar: 'تسجيل علامات حيوية', en: 'Vital signs recorded', icon: 'thermometer' },
+  'clinical.drug_saved': { ar: 'حفظ دواء في القائمة', en: 'Drug list edited', icon: 'pill' },
+  'clinical.drug_deleted': { ar: 'حذف دواء من القائمة', en: 'Drug deleted', tone: 'warn', icon: 'pill' },
+  'clinical.diagnosis_saved': { ar: 'حفظ تشخيص في القائمة', en: 'Diagnosis list edited', icon: 'clipboard' },
+  'clinical.diagnosis_deleted': { ar: 'حذف تشخيص من القائمة', en: 'Diagnosis deleted', tone: 'warn', icon: 'clipboard' },
   'system.first_admin': { ar: 'إنشاء أول مدير نظام', en: 'First admin created', icon: 'shield' },
 }
 
@@ -91,6 +101,9 @@ export const CATEGORIES = [
   { value: 'patient_file', ar: 'المستندات الطبية', en: 'Patient documents' },
   { value: 'settings', ar: 'إعداد العيادة', en: 'Clinic setup' },
   { value: 'appointment', ar: 'المواعيد', en: 'Appointments' },
+  { value: 'visit', ar: 'الزيارات والروشتات', en: 'Visits & prescriptions' },
+  { value: 'vitals', ar: 'العلامات الحيوية', en: 'Vital signs' },
+  { value: 'clinical', ar: 'قوائم الأدوية والتشخيصات', en: 'Drug & diagnosis lists' },
 ]
 
 export function actionMeta(action) {

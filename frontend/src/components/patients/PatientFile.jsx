@@ -14,6 +14,7 @@ import { actionMeta } from '../../lib/activity'
 import { errorText, fieldErrors } from '../../lib/errors'
 import { fmtDate, fmtDateTime, fmtPhone } from '../../lib/format'
 import PatientAppointments from '../appointments/PatientAppointments'
+import { PatientVisits, PatientVitals } from '../visits/PatientVisits'
 import AlertsStrip from './AlertsStrip'
 import Documents from './Documents'
 import FamilyCard from './FamilyCard'
@@ -198,6 +199,8 @@ export default function PatientFile() {
   const canSeeDocs = can('patient_files.view_admin') || can('patient_files.view_clinical')
   const tabs = [
     ['overview', tx('نظرة عامة', 'Overview')],
+    ...(can('visits.write') || can('visits.view_all') ? [['visits', tx('الزيارات', 'Visits')]] : []),
+    ...(can('visits.vitals') || can('visits.view_all') ? [['vitals', tx('العلامات الحيوية', 'Vital signs')]] : []),
     ...(can('appointments.view') ? [['appointments', tx('المواعيد', 'Appointments')]] : []),
     ...(canSeeDocs ? [['documents', tx('المستندات', 'Documents'), data.counts.documents, data.counts.pending_review]] : []),
     ['history', tx('السجل', 'History')],
@@ -287,6 +290,8 @@ export default function PatientFile() {
           </div>
         </div>
       )}
+      {tab === 'visits' && <PatientVisits patientId={p.id} />}
+      {tab === 'vitals' && <PatientVitals patientId={p.id} patientName={name} />}
       {tab === 'appointments' && <PatientAppointments patientId={p.id} />}
       {tab === 'documents' && <Documents patientId={p.id} onCounts={reload} />}
       {tab === 'history' && <History patientId={p.id} />}

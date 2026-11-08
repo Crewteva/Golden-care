@@ -296,6 +296,26 @@ const PATHS = {
       <path d="m2 17 10 5 10-5M2 12l10 5 10-5" />
     </>
   ),
+  pill: (
+    <>
+      <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z" />
+      <path d="m8.5 8.5 7 7" />
+    </>
+  ),
+  printer: (
+    <>
+      <path d="M6 9V2h12v7" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" rx="1" />
+    </>
+  ),
+  thermometer: <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />,
+  pen: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+    </>
+  ),
 }
 
 const FLIP = new Set(['arrowLeft', 'arrowRight', 'chevronLeft', 'chevronRight', 'logOut', 'logIn'])

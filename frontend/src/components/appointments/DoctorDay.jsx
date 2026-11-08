@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { visitsApi } from '../../api/visits'
+import { slugFor } from '../../auth/roles'
 import Button from '../Button'
 import Icon from '../Icon'
 import { Avatar, EmptyState, ErrorState, PageHeader, SkeletonRows } from '../ui'
@@ -16,7 +18,9 @@ import { DateNav } from './TodayBoard'
 // The doctor's day: who is inside, who is waiting (by queue number), who comes later.
 export default function DoctorDay() {
   const { t, tx, pick, locale } = useI18n()
-  const { api, base } = useAppointments()
+  const { api, base, can, me } = useAppointments()
+  const slug = slugFor(me.active_role)
+  const navigate = useNavigate()
   const toast = useToast()
   const [day, setDay] = useState(dayKey())
   const [open, setOpen] = useState(null)
@@ -32,12 +36,25 @@ export default function DoctorDay() {
   const run = async (a, action, message) => {
     setBusy(a.id)
     try {
-      await api[action](a.id)
+      const next = await api[action](a.id)
       toast.success(message)
-      data.reload()
+      // calling a patient in opens the visit record straight away
+      if (action === 'call' && next.visit_id && can('visits.write')) navigate(`${base}/visits/${next.visit_id}`)
+      else data.reload()
     } catch (err) {
       toast.error(errorText(err, t))
     } finally {
+      setBusy(null)
+    }
+  }
+  const openVisit = async (a) => {
+    if (a.visit_id) return navigate(`${base}/visits/${a.visit_id}`)
+    setBusy(a.id)
+    try {
+      const v = await visitsApi(slug).start(a.id)
+      navigate(`${base}/visits/${v.id}`)
+    } catch (err) {
+      toast.error(errorText(err, t))
       setBusy(null)
     }
   }
@@ -83,7 +100,11 @@ export default function DoctorDay() {
                   </div>
                   <div className="page-actions">
                     <Link to={`${base}/patients/${inside.patient_id}`} className="btn btn-ghost"><Icon name="fileSearch" size={18} />{tx('فتح الملف', 'Open file')}</Link>
-                    <Button icon="checkCircle" loading={busy === inside.id} onClick={() => run(inside, 'finish', tx('انتهت الزيارة.', 'Visit finished.'))}>{tx('إنهاء الزيارة', 'Finish visit')}</Button>
+                    {can('visits.write') ? (
+                      <Button icon="pen" loading={busy === inside.id} onClick={() => openVisit(inside)}>{tx('فتح الزيارة', 'Open visit')}</Button>
+                    ) : (
+                      <Button icon="checkCircle" loading={busy === inside.id} onClick={() => run(inside, 'finish', tx('انتهت الزيارة.', 'Visit finished.'))}>{tx('إنهاء الزيارة', 'Finish visit')}</Button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -120,7 +141,13 @@ export default function DoctorDay() {
             <section className="card">
               <details>
                 <summary className="card-head" style={{ cursor: 'pointer' }}><h2>{tx('انتهت / لم يحضر / أُلغي', 'Done / no-show / cancelled')} <span className="muted">({done.length})</span></h2></summary>
-                <ul className="dd-list">{done.map((a) => <Row key={a.id} a={a} />)}</ul>
+                <ul className="dd-list">{done.map((a) => (
+                  <Row key={a.id} a={a} action={a.status === 'completed' && can('visits.write') && (
+                    <Button size="sm" variant={a.visit_status === 'draft' ? 'gold' : 'ghost'} icon="pen" loading={busy === a.id} onClick={() => openVisit(a)}>
+                      {a.visit_status === 'signed' ? tx('الزيارة', 'Visit') : a.visit_status === 'draft' ? tx('توقيع الزيارة', 'Sign visit') : tx('كتابة الزيارة', 'Write visit')}
+                    </Button>
+                  )} />
+                ))}</ul>
               </details>
             </section>
           )}

@@ -28,6 +28,20 @@ export default function HomeStats({ data }) {
           <div className="stat-foot">{tx('بانتظار تأكيدك', 'Waiting for you to confirm')}</div>
         </Link>
       )}
+      {data.visits && (
+        <Link to={`${base}/visits`} className={`stat ${data.visits.draft ? 'attention' : ''}`}>
+          <div className="stat-label"><Icon name="pen" size={17} />{slug === 'doctor' ? tx('زيارات لم تُوقَّع', 'Unsigned visits') : tx('زيارات لم يوقّعها الأطباء', 'Visits not yet signed')}</div>
+          <div className="stat-value num">{n(data.visits.draft)}</div>
+          <div className="stat-foot">{tx(`${data.visits.unreleased} موقّعة لم تُتح للمريض · ${data.visits.signed_today} وُقّعت اليوم`, `${data.visits.unreleased} signed, not released · ${data.visits.signed_today} signed today`)}</div>
+        </Link>
+      )}
+      {data.follow_ups !== undefined && (
+        <Link to={`${base}/follow-ups`} className={`stat ${data.follow_ups ? 'attention' : ''}`}>
+          <div className="stat-label"><Icon name="refresh" size={17} />{tx('متابعات مطلوبة', 'Follow-ups due')}</div>
+          <div className="stat-value num">{n(data.follow_ups)}</div>
+          <div className="stat-foot">{tx('طلبها الأطباء ولم تُحجز بعد', 'Asked for by doctors, not booked yet')}</div>
+        </Link>
+      )}
       {data.pending_reviews !== undefined && (
         <Link to={`${base}/review`} className={`stat ${data.pending_reviews ? 'attention' : ''}`}>
           <div className="stat-label"><Icon name="clipboard" size={17} />{tx('نتائج بانتظار المراجعة', 'Results awaiting review')}</div>

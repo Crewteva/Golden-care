@@ -42,7 +42,7 @@ export default function BookAppointment() {
   const catalog = useAsync(() => sApi.catalog(), [sApi])
   const [patient, setPatient] = useState(null)
   const [serviceIds, setServiceIds] = useState([])
-  const [doctorId, setDoctorId] = useState('')
+  const [doctorId, setDoctorId] = useState(params.get('doctor') || '')
   const [slot, setSlot] = useState(null)
   const [source, setSource] = useState('phone')
   const [notes, setNotes] = useState('')

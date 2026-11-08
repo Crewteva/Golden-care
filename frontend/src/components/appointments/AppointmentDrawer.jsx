@@ -74,7 +74,8 @@ export default function AppointmentDrawer({ id, onClose, onChanged }) {
   }
   if (can('appointments.treat') && (mine || can('appointments.manage'))) {
     if (appt.status === 'arrived') actions.push(['call', 'stethoscope', tx('استدعاء للكشف', 'Call in'), () => run('call', () => api.call(id), tx('المريض مع الطبيب الآن.', 'Patient is with the doctor.')), 'primary'])
-    if (appt.status === 'in_room') actions.push(['finish', 'checkCircle', tx('إنهاء الزيارة', 'Finish visit'), () => run('finish', () => api.finish(id), tx('انتهت الزيارة.', 'Visit finished.')), 'primary'])
+    // doctors who write visits finish by signing the visit; the button stays for staff covering without a visit record
+    if (appt.status === 'in_room' && !(mine && can('visits.write'))) actions.push(['finish', 'checkCircle', tx('إنهاء الزيارة', 'Finish visit'), () => run('finish', () => api.finish(id), tx('انتهت الزيارة.', 'Visit finished.')), 'primary'])
   }
 
   return (
@@ -129,8 +130,11 @@ export default function AppointmentDrawer({ id, onClose, onChanged }) {
           </dd>
         </dl>
 
-        {actions.length > 0 && !mode && (
+        {(actions.length > 0 || (appt.visit_id && mine && can('visits.write'))) && !mode && (
           <div className="appt-actions">
+            {appt.visit_id && mine && can('visits.write') && (
+              <Link to={`${base}/visits/${appt.visit_id}`} className="btn btn-primary"><Icon name="pen" size={18} />{appt.visit_status === 'signed' ? tx('عرض الزيارة', 'View visit') : tx('فتح الزيارة', 'Open visit')}</Link>
+            )}
             {actions.map(([key, icon, label, fn, variant]) => (
               <Button key={key} variant={variant || 'ghost'} icon={icon} loading={busy === key} onClick={fn}>{label}</Button>
             ))}

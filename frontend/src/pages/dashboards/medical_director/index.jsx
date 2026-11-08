@@ -8,19 +8,27 @@ import WeekView from '../../../components/settings/WeekView'
 import LeaveHolidays from '../../../components/settings/LeaveHolidays'
 import Catalog from '../../../components/settings/Catalog'
 import Calendar from '../../../components/appointments/Calendar'
+import VisitWorkspace from '../../../components/visits/VisitWorkspace'
+import VisitList from '../../../components/visits/VisitList'
+import ClinicalLists from '../../../components/visits/ClinicalLists'
+import RxPrint from '../../../components/visits/RxSheet'
 
 export default {
   role: 'medical_director',
   pages: [
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     { path: 'calendar', icon: 'calendar', label: { ar: 'التقويم', en: 'Calendar' }, element: <Calendar />, permission: 'appointments.view' },
+    { path: 'visits', icon: 'pen', label: { ar: 'الزيارات', en: 'Visits' }, element: <VisitList />, permission: 'visits.view_all' },
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
     { path: 'review', icon: 'clipboard', label: { ar: 'بانتظار المراجعة', en: 'Awaiting review' }, element: <ReviewQueue />, permission: 'patient_files.review' },
+    { path: 'clinical-lists', icon: 'pill', label: { ar: 'الأدوية والتشخيصات', en: 'Drugs & diagnoses' }, element: <ClinicalLists />, permission: 'clinical_lists.manage' },
     { path: 'doctors', icon: 'stethoscope', label: { ar: 'الأطباء والجداول', en: 'Doctors & schedules' }, element: <Doctors />, permission: 'settings.view' },
     { path: 'doctors/:id', nav: false, element: <DoctorSetup />, permission: 'settings.view' },
     { path: 'schedules', icon: 'clock', label: { ar: 'جدول الأسبوع', en: 'Week view' }, element: <WeekView />, permission: 'settings.view' },
     { path: 'leave', icon: 'calendar', label: { ar: 'الإجازات والعطلات', en: 'Leave & holidays' }, element: <LeaveHolidays />, permission: 'settings.view' },
     { path: 'services', icon: 'clipboard', label: { ar: 'التخصصات والخدمات', en: 'Specialties & services' }, element: <Catalog />, permission: 'settings.view' },
     { path: 'patients/:id', nav: false, element: <PatientFile />, permission: 'patients.view' },
+    { path: 'visits/:id', nav: false, element: <VisitWorkspace />, permission: 'visits.view_all' },
+    { path: 'visits/:id/print', nav: false, element: <RxPrint />, permission: 'visits.view_all' },
   ],
 }

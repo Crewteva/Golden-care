@@ -4,6 +4,7 @@ import Family from './Family'
 import Profile from './Profile'
 import Appointments from './Appointments'
 import BookOnline from './BookOnline'
+import Visits, { MyVisitPrint } from './Visits'
 
 export default {
   role: 'patient',
@@ -11,6 +12,8 @@ export default {
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     { path: 'appointments', icon: 'calendar', label: { ar: 'مواعيدي', en: 'My appointments' }, element: <Appointments /> },
     { path: 'book', nav: false, element: <BookOnline /> },
+    { path: 'visits', icon: 'stethoscope', label: { ar: 'زياراتي والروشتات', en: 'My visits' }, element: <Visits /> },
+    { path: 'visits/:id/print', nav: false, element: <MyVisitPrint /> },
     { path: 'documents', icon: 'fileSearch', label: { ar: 'نتائجي ومستنداتي', en: 'Results & documents' }, element: <Documents /> },
     { path: 'family', icon: 'users', label: { ar: 'عائلتي', en: 'My family' }, element: <Family /> },
     { path: 'profile', icon: 'user', label: { ar: 'ملفي', en: 'My profile' }, element: <Profile /> },

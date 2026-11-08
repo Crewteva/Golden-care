@@ -6,6 +6,7 @@ import WeekView from '../../../components/settings/WeekView'
 import TodayBoard from '../../../components/appointments/TodayBoard'
 import BookAppointment from '../../../components/appointments/BookAppointment'
 import Calendar from '../../../components/appointments/Calendar'
+import FollowUps from '../../../components/visits/FollowUps'
 
 export default {
   role: 'reception',
@@ -13,6 +14,7 @@ export default {
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     { path: 'today', icon: 'bell', label: { ar: 'مواعيد اليوم', en: "Today's appointments" }, element: <TodayBoard />, permission: 'appointments.view' },
     { path: 'book', icon: 'plus', label: { ar: 'حجز موعد', en: 'Book appointment' }, element: <BookAppointment />, permission: 'appointments.book' },
+    { path: 'follow-ups', icon: 'refresh', label: { ar: 'متابعات مطلوبة', en: 'Follow-ups due' }, element: <FollowUps />, permission: 'appointments.book' },
     { path: 'calendar', icon: 'calendar', label: { ar: 'التقويم', en: 'Calendar' }, element: <Calendar />, permission: 'appointments.view' },
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
     { path: 'patients/new', nav: false, element: <NewPatient />, permission: 'patients.create' },
