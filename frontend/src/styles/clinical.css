@@ -158,13 +158,34 @@ button.device-pill {
 }
 .area-row {
   display: grid;
-  grid-template-columns: minmax(130px, 1.6fr) repeat(5, minmax(58px, 0.7fr)) minmax(120px, 1.4fr) auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
   gap: 8px;
   align-items: end;
   padding: 10px;
   border-radius: 14px;
   background: var(--paper);
   border: 1px solid var(--line);
+}
+.area-row .area-name {
+  grid-column: 1 / 6;
+}
+.area-row > button {
+  grid-column: 6;
+  grid-row: 1;
+}
+.area-row .area-reaction {
+  grid-column: 1 / -1;
+}
+@media (min-width: 1500px) {
+  .area-row {
+    grid-template-columns: minmax(130px, 1.6fr) repeat(5, minmax(58px, 0.7fr)) minmax(120px, 1.4fr) auto;
+  }
+  .area-row .area-name,
+  .area-row .area-reaction,
+  .area-row > button {
+    grid-column: auto;
+    grid-row: auto;
+  }
 }
 .area-row label {
   display: grid;
@@ -179,13 +200,15 @@ button.device-pill {
 .area-row .pulses input {
   font-weight: 600;
 }
-@media (max-width: 900px) {
+@media (max-width: 560px) {
   .area-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   }
-  .area-row .area-name,
-  .area-row .area-reaction {
-    grid-column: 1 / -1;
+  .area-row .area-name {
+    grid-column: 1 / 4;
+  }
+  .area-row > button {
+    grid-column: 4;
   }
 }
 
