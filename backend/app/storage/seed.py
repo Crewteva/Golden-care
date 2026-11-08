@@ -58,6 +58,11 @@ PERMISSIONS = [
     ("appointments.manage", "appointments", "تأكيد ووصول وإلغاء ونقل المواعيد", "Confirm, check in, cancel & move appointments"),
     ("appointments.treat", "appointments", "استدعاء المريض وإنهاء الزيارة", "Call in & finish visits"),
     ("appointments.overbook", "appointments", "إضافة موعد خارج الأوقات المتاحة", "Squeeze in outside free times"),
+    ("visits.write", "clinical", "كتابة وتوقيع زيارات مرضاه", "Write & sign own visits"),
+    ("visits.view_all", "clinical", "قراءة زيارات كل الأطباء", "Read every doctor's visits"),
+    ("visits.vitals", "clinical", "تسجيل العلامات الحيوية", "Record vital signs"),
+    ("prescriptions.restricted", "clinical", "وصف الأدوية المقيّدة", "Prescribe restricted medicines"),
+    ("clinical_lists.manage", "clinical", "إدارة قوائم الأدوية والتشخيصات", "Manage drug & diagnosis lists"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -92,6 +97,11 @@ PERMISSION_DEFAULTS = {
     "appointments.manage": ["reception", "patient_relations"],
     "appointments.treat": ["doctor"],
     "appointments.overbook": ["reception"],
+    "visits.write": ["doctor"],
+    "visits.view_all": ["medical_director"],
+    "visits.vitals": CLINICAL,
+    "prescriptions.restricted": ["doctor"],
+    "clinical_lists.manage": ["medical_director"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -120,6 +130,7 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_patients import seed_demo_patients
     from app.storage.demo_appointments import seed_demo_appointments
     from app.storage.demo_settings import seed_demo_settings
+    from app.storage.demo_visits import seed_clinical_lists, seed_demo_visits
 
     with conn.transaction():
         _roles_and_permissions(conn)
@@ -130,6 +141,8 @@ def run_seed(conn: psycopg.Connection) -> None:
             seed_demo_patients(conn, branch_id)
             seed_demo_settings(conn, branch_id)
             seed_demo_appointments(conn)
+            seed_clinical_lists(conn)
+            seed_demo_visits(conn)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:

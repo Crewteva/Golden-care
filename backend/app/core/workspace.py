@@ -62,4 +62,19 @@ def workspace_home(conn: psycopg.Connection, ctx: Ctx) -> dict:
             """,
             {"doctor": doctor},
         ).fetchone()
+    if "visits.write" in ctx.permissions or "visits.view_all" in ctx.permissions:
+        mine = ctx.user_id if "visits.view_all" not in ctx.permissions else None
+        summary["visits"] = conn.execute(
+            """
+            SELECT count(*) FILTER (WHERE status = 'draft') AS draft,
+                   count(*) FILTER (WHERE status = 'signed' AND released_at IS NULL) AS unreleased,
+                   count(*) FILTER (WHERE signed_at >= date_trunc('day', now())) AS signed_today
+            FROM visits WHERE %(doctor)s::uuid IS NULL OR doctor_id = %(doctor)s::uuid
+            """,
+            {"doctor": mine},
+        ).fetchone()
+    if "appointments.book" in ctx.permissions:
+        from app.core.visits import follow_ups
+
+        summary["follow_ups"] = len(follow_ups(conn))
     return summary

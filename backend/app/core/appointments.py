@@ -26,8 +26,10 @@ SELECT = """
                                                        'duration_min', x.duration_min, 'price', x.price) ORDER BY x.position)
                      FROM appointment_services x JOIN services s ON s.id = x.service_id WHERE x.appointment_id = a.id), '[]') AS services,
            EXISTS (SELECT 1 FROM patient_alerts al WHERE al.patient_id = a.patient_id AND al.removed_at IS NULL
-                   AND al.severity = 'critical') AS critical_alert
+                   AND al.severity = 'critical') AS critical_alert,
+           vs.id AS visit_id, vs.status AS visit_status
     FROM appointments a
+    LEFT JOIN visits vs ON vs.appointment_id = a.id
     JOIN patients p ON p.id = a.patient_id
     JOIN users d ON d.id = a.doctor_id
     LEFT JOIN doctor_profiles dp ON dp.user_id = a.doctor_id
@@ -289,6 +291,9 @@ def call_in(conn: psycopg.Connection, ctx: Ctx, appointment_id) -> None:
     ).fetchone():
         raise AppError(409, "already_with_patient")
     _set_status(conn, ctx, appt, "in_room", ", in_room_at = now()")
+    from app.core.visits import create_for_appointment  # the visit record opens when the patient goes in
+
+    create_for_appointment(conn, appt)
 
 
 def finish(conn: psycopg.Connection, ctx: Ctx, appointment_id) -> None:

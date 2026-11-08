@@ -6,6 +6,7 @@ from app.core.patients_api import router as patients_router
 from app.core.session import Ctx, ready_ctx
 from app.core.appointments_api import router as appointments_router
 from app.core.settings_api import router as settings_router
+from app.core.visits_api import router as visits_router
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
@@ -17,6 +18,8 @@ router.include_router(patients_router)
 router.include_router(settings_router)
 # /api/nurse/appointments/... (what this role may do is set by its permissions)
 router.include_router(appointments_router)
+# /api/nurse/visits/... (vital signs; the doctor's notes need visits.write or visits.view_all)
+router.include_router(visits_router)
 
 
 @router.get("/home")

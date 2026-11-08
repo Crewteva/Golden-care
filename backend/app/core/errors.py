@@ -60,5 +60,9 @@ def install(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def unexpected(request: Request, exc: Exception):
+        # the database itself refuses changes to locked records (signed visits, append-only rows)
+        if "visit_locked" in str(exc) or "is append-only" in str(exc):
+            log.warning("Refused by the database on %s %s: %s", request.method, request.url.path, exc)
+            return JSONResponse(_body("visit_locked"), status_code=409)
         log.exception("Unhandled error on %s %s", request.method, request.url.path)
         return JSONResponse(_body("server_error"), status_code=500)

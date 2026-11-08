@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from app.config import settings
 
 TZ = ZoneInfo(settings.timezone)
+MIDNIGHT = time(0, 0)
 
 
 def now() -> datetime:

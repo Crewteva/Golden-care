@@ -6,7 +6,7 @@ import psycopg
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import FileResponse
 
-from app.core import files
+from app.core import files, visits
 from app.core.appointment_schemas import PortalBookIn, PortalCancelIn
 from app.core.session import Ctx, require_role, set_session_cookie
 from app.core.workspace import workspace_home
@@ -71,6 +71,17 @@ def cancel(appointment_id: UUID, body: PortalCancelIn, ctx: Ctx = Depends(is_pat
 @router.get("/family")
 def family(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
     return service.family(conn, ctx)
+
+
+@router.get("/visits")
+def my_visits(ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    """Visits the doctor released: the plain-language summary and the prescription. Never the medical notes."""
+    return visits.released_for(conn, service.my_patient_ids(conn, ctx))
+
+
+@router.get("/visits/{visit_id}")
+def my_visit(visit_id: UUID, ctx: Ctx = Depends(is_patient), conn: psycopg.Connection = Depends(get_conn)):
+    return visits.released_one(conn, ctx, service.my_patient_ids(conn, ctx), visit_id)
 
 
 @router.get("/files")
