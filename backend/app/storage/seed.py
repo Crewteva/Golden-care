@@ -182,7 +182,7 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_dental import seed_demo_complaints, seed_demo_dental
     from app.storage.demo_billing import seed_demo_billing
     from app.storage.demo_accounting import seed_demo_accounting
-    from app.storage.demo_inventory import seed_demo_inventory
+    from app.storage.demo_inventory import seed_demo_inventory, seed_demo_inventory_completion
     from app.core.accounting import sync as post_to_journal
 
     with conn.transaction():
@@ -204,6 +204,7 @@ def run_seed(conn: psycopg.Connection) -> None:
         if settings.seed_demo:
             seed_demo_accounting(conn, branch_id)
             seed_demo_inventory(conn, branch_id)
+            seed_demo_inventory_completion(conn, branch_id)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:

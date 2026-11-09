@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
@@ -174,6 +174,9 @@ class DeviceIn(BaseModel):
     warranty_end: date | None = None
     maintenance_every_days: int | None = Field(default=None, ge=1, le=1095)
     last_maintenance_on: date | None = None
+    calibration_every_days: int | None = Field(default=None, ge=1, le=1095)
+    last_calibration_on: date | None = None
+    pulse_limit: int | None = Field(default=None, ge=1, le=100_000_000)    # lasers: pulses between services
     notes: str | None = Field(default=None, max_length=500)
     is_active: bool = True
 
@@ -192,3 +195,53 @@ class FaultIn(BaseModel):
 class FixIn(BaseModel):
     resolution: str = Field(min_length=5, max_length=500)
     back_to_work: bool = True
+
+
+class BookingIn(BaseModel):
+    device_id: int
+    day: date
+    starts: time
+    ends: time
+    purpose: str = Field(min_length=3, max_length=200)
+    room_id: int | None = None
+
+
+# ---------- transfers & returns ----------
+
+class TransferLineIn(BaseModel):
+    item_id: int
+    qty: Qty = qty()
+
+
+class TransferIn(BaseModel):
+    from_store_id: int
+    to_store_id: int
+    note: str | None = Field(default=None, max_length=300)
+    lines: list[TransferLineIn] = Field(min_length=1, max_length=60)
+
+
+class DispatchLineIn(BaseModel):
+    item_id: int
+    qty: Qty = Field(ge=0, le=1_000_000, decimal_places=2)     # 0 = not sent
+
+
+class DispatchIn(BaseModel):
+    dispatched_on: date | None = None
+    lines: list[DispatchLineIn] = Field(default_factory=list, max_length=60)
+
+
+class ArrivedLotIn(BaseModel):
+    lot_id: int                                                   # stock_transfer_lots.id
+    qty_received: Qty = Field(ge=0, le=1_000_000, decimal_places=2)
+
+
+class ArrivalIn(BaseModel):
+    received_on: date | None = None
+    lots: list[ArrivedLotIn] = Field(default_factory=list, max_length=200)
+    shortage_note: str | None = Field(default=None, max_length=300)
+
+
+class ReturnIn(BaseModel):
+    lot_id: int
+    qty: Qty = qty()
+    reason: str = Field(min_length=5, max_length=300)

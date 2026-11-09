@@ -8,6 +8,8 @@ zero: the lot rows are locked and the database refuses a negative quantity. Each
   use               Consumables used / Inventory
   write-off         Stock losses     / Inventory
   count difference  Stock losses     / Inventory   (or the other way for a surplus), only once management approves
+
+Transfers between stores and returns to suppliers are in transfers.py.
 """
 from datetime import date, timedelta
 from decimal import Decimal
@@ -294,9 +296,9 @@ def _move(conn: psycopg.Connection, ctx: Ctx, *, day: date, kind: str, lot: dict
 
 
 def take(conn: psycopg.Connection, ctx: Ctx, *, store_id: int, item: dict, qty: Decimal, day: date, kind: str, doc_type: str, doc: dict,
-         field: str, usable_only: bool) -> Decimal:
+         field: str, usable_only: bool, parts: list | None = None) -> Decimal:
     """Takes `qty` out of the store, earliest expiry first. Returns the cost taken. Expired lots are skipped when using stock
-    (they can only be written off)."""
+    (they can only be written off). `parts`, when given, collects (lot, qty) for each lot touched."""
     lots = conn.execute(
         """SELECT * FROM stock_lots WHERE store_id = %s AND item_id = %s AND qty_on_hand > 0
              AND (NOT %s OR expiry IS NULL OR expiry >= %s)
@@ -313,6 +315,8 @@ def take(conn: psycopg.Connection, ctx: Ctx, *, store_id: int, item: dict, qty: 
         part = min(left, D(lot["qty_on_hand"]))
         conn.execute("UPDATE stock_lots SET qty_on_hand = qty_on_hand - %s WHERE id = %s", (part, lot["id"]))
         _move(conn, ctx, day=day, kind=kind, lot=lot, qty=-part, doc_type=doc_type, doc=doc)
+        if parts is not None:
+            parts.append((lot, part))
         cost += part * D(lot["unit_cost"])
         left -= part
     return q(cost)

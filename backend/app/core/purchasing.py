@@ -1,9 +1,11 @@
-"""Purchasing: purchase orders (management approves those above the limit), the supplier's bill matched to what was
-received, payments to suppliers, the supplier statement and payables aging.
+"""Purchasing: purchase orders (every order is approved by someone other than who raised it; above the limit only
+management can approve), the supplier's bill matched to what was received, two-person payments to suppliers, the
+supplier statement and payables aging.
 
-What the clinic owes a supplier = goods received + maintenance done on credit − payments. A bill doesn't post anything:
-it groups receipts (and maintenance) under the supplier's invoice number and gives them a due date from the payment
-terms. Paying posts Suppliers payable / Bank or petty cash."""
+What the clinic owes a supplier = goods received + maintenance done on credit − approved returns − payments. A bill
+doesn't post anything: it groups receipts (and maintenance) under the supplier's invoice number and gives them a due
+date from the payment terms. A payment is prepared by one person and approved by another; approving posts Suppliers
+payable / Bank or petty cash."""
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -23,6 +25,7 @@ PO_SELECT = """
     SELECT o.*, s.name AS supplier, st.name_ar AS store_ar, st.name_en AS store_en,
            cu.full_name_ar AS created_by_ar, cu.full_name_en AS created_by_en,
            du.full_name_ar AS decided_by_ar, du.full_name_en AS decided_by_en,
+           (o.approval_limit <= 0 OR o.total > o.approval_limit) AS needs_management,
            (SELECT count(*) FROM purchase_order_lines l WHERE l.po_id = o.id) AS line_count,
            (SELECT COALESCE(sum(l.received_qty * l.unit_cost), 0) FROM purchase_order_lines l WHERE l.po_id = o.id) AS received_value
     FROM purchase_orders o JOIN suppliers s ON s.id = o.supplier_id JOIN stores st ON st.id = o.store_id
@@ -97,13 +100,14 @@ def _write_lines(conn: psycopg.Connection, po_id, body) -> None:
                      (po_id, position, ln.item_id, ln.qty, ln.unit_cost))
 
 
-def _needs_approval(total: Decimal, limit: Decimal) -> bool:
+def needs_management(total: Decimal, limit: Decimal) -> bool:
+    """Above the approval limit (or always, when the limit is 0) only management may approve the order."""
     return limit <= 0 or total > limit
 
 
 def save_order(conn: psycopg.Connection, ctx: Ctx, body, po_id=None) -> dict:
-    """New or edited order. Above the approval limit (or always, when the limit is 0) it waits for management.
-    An order can be edited only before anything was received; editing sends it back for approval when needed."""
+    """New or edited order. Every order waits for approval by someone else (management above the limit).
+    An order can be edited only before anything was received; editing sends it back for approval."""
     supplier = conn.execute("SELECT * FROM suppliers WHERE id = %s", (body.supplier_id,)).fetchone()
     if not supplier or not supplier["is_active"]:
         raise field_error("supplier_id", "invalid")
@@ -118,7 +122,7 @@ def save_order(conn: psycopg.Connection, ctx: Ctx, body, po_id=None) -> dict:
     if total <= 0:
         raise field_error("lines", "zero_total")
     limit = approval_limit(conn)
-    status = "pending_approval" if _needs_approval(total, limit) else "approved"
+    status = "pending_approval"
     values = (body.supplier_id, body.store_id, status, ordered_on, body.expected_on, clean(body.note), total, limit)
     if po_id is None:
         row = conn.execute(
@@ -135,7 +139,8 @@ def save_order(conn: psycopg.Connection, ctx: Ctx, body, po_id=None) -> dict:
                WHERE id = %s RETURNING *""", (*values, po_id)).fetchone()
     _write_lines(conn, row["id"], body)
     audit.record(conn, "purchasing.order_saved", ctx=ctx, entity="purchase_order", entity_id=row["id"], details={
-        "ref": row["ref"], "supplier": supplier["name"], "total": str(total), "status": status, "limit": str(limit), "new": po_id is None})
+        "ref": row["ref"], "supplier": supplier["name"], "total": str(total), "status": status, "limit": str(limit), "new": po_id is None,
+        "management_approval": needs_management(total, limit)})
     return row
 
 
@@ -143,6 +148,10 @@ def decide_order(conn: psycopg.Connection, ctx: Ctx, po_id, approve: bool, note:
     row = lock_order(conn, po_id)
     if row["status"] != "pending_approval":
         raise AppError(409, "order_not_pending")
+    if row["created_by"] == ctx.user_id:
+        raise AppError(403, "same_person")
+    if needs_management(D(row["total"]), D(row["approval_limit"])) and "inventory.approve" not in ctx.permissions:
+        raise AppError(403, "above_limit", limit=str(row["approval_limit"]))
     note = clean(note)
     if not approve and (not note or len(note) < 5):
         raise field_error("note", "required")
@@ -172,6 +181,7 @@ def cancel_order(conn: psycopg.Connection, ctx: Ctx, po_id, reason: str) -> dict
 OWED_SQL = """
     (SELECT COALESCE(sum(g.total), 0) FROM goods_receipts g WHERE g.supplier_id = s.id)
   + (SELECT COALESCE(sum(m.cost), 0) FROM device_maintenance m WHERE m.supplier_id = s.id AND m.paid_from_id IS NULL)
+  - (SELECT COALESCE(sum(r.amount), 0) FROM supplier_returns r WHERE r.supplier_id = s.id AND r.status = 'approved')
   - (SELECT COALESCE(sum(p.amount), 0) FROM supplier_payments p WHERE p.supplier_id = s.id)
 """
 
@@ -227,6 +237,11 @@ def statement(conn: psycopg.Connection, supplier_id: int) -> dict:
           FROM device_maintenance m JOIN devices d ON d.id = m.device_id LEFT JOIN supplier_bills b ON b.id = m.bill_id
           WHERE m.supplier_id = %(s)s AND m.paid_from_id IS NULL AND m.cost > 0
           UNION ALL
+          SELECT 'return', r.id::text, r.ref, r.returned_on, r.decided_at, 0, r.amount,
+                 i.name_en || ' × ' || trim_scale(r.qty)::text || COALESCE(' · ' || l.lot_no, ''), NULL
+          FROM supplier_returns r JOIN items i ON i.id = r.item_id JOIN stock_lots l ON l.id = r.lot_id
+          WHERE r.supplier_id = %(s)s AND r.status = 'approved'
+          UNION ALL
           SELECT 'payment', p.id::text, p.ref, p.paid_on, p.created_at, 0, p.amount, a.name_en || COALESCE(' · ' || p.reference, ''), b.bill_no
           FROM supplier_payments p JOIN accounts a ON a.id = p.paid_from_id LEFT JOIN supplier_bills b ON b.id = p.bill_id
           WHERE p.supplier_id = %(s)s
@@ -240,7 +255,8 @@ def statement(conn: psycopg.Connection, supplier_id: int) -> dict:
         r["balance"] = running
     rows.reverse()
     return {"supplier": supplier, "rows": rows, "balance": running, "bills": _bills(conn, supplier_id), "unbilled": _unbilled(conn, supplier_id),
-            "orders": orders(conn, supplier_id=supplier_id)[:20], "aging": aging_for(conn, supplier)}
+            "orders": orders(conn, supplier_id=supplier_id)[:20], "aging": aging_for(conn, supplier),
+            "requests": payment_requests(conn, supplier_id=supplier_id, status="prepared")}
 
 
 def add_bill(conn: psycopg.Connection, ctx: Ctx, body) -> dict:
@@ -279,36 +295,96 @@ def add_bill(conn: psycopg.Connection, ctx: Ctx, body) -> dict:
     return bill
 
 
-def pay(conn: psycopg.Connection, ctx: Ctx, body) -> dict:
-    supplier = conn.execute("SELECT * FROM suppliers WHERE id = %s FOR UPDATE", (body.supplier_id,)).fetchone()
+def _check_payment(conn: psycopg.Connection, body, skip_request=None) -> tuple[dict, dict, dict | None, Decimal]:
+    """The supplier, the money account, the bill and the amount, checked against what's owed less the payments already
+    waiting for approval (other than `skip_request`)."""
+    supplier = conn.execute("SELECT * FROM suppliers WHERE id = %s FOR UPDATE", (body["supplier_id"],)).fetchone()
     if not supplier:
         raise field_error("supplier_id", "invalid")
-    acc.check_date(conn, body.paid_on, "paid_on")
-    source = acc.money_account(conn, body.paid_from_id, "paid_from_id", allow_drawer=False, allow_clearing=False)
-    amount = q(body.amount)
-    owed = balance(conn, supplier["id"])
+    acc.check_date(conn, body["paid_on"], "paid_on")
+    source = acc.money_account(conn, body["paid_from_id"], "paid_from_id", allow_drawer=False, allow_clearing=False)
+    amount = q(body["amount"])
+    waiting = conn.execute(
+        """SELECT COALESCE(sum(amount), 0) AS total, COALESCE(sum(amount) FILTER (WHERE bill_id = %(b)s), 0) AS on_bill
+           FROM supplier_payment_requests WHERE supplier_id = %(s)s AND status = 'prepared' AND id IS DISTINCT FROM %(skip)s""",
+        {"s": supplier["id"], "b": body["bill_id"], "skip": skip_request}).fetchone()
+    owed = balance(conn, supplier["id"]) - D(waiting["total"])
     if amount > owed:
-        raise AppError(422, "validation", fields={"amount": "more_than_owed"}, owed=str(owed))
+        raise AppError(422, "validation", fields={"amount": "more_than_owed"}, owed=str(max(owed, ZERO)))
     bill = None
-    if body.bill_id:
-        bill = next((b for b in _bills(conn, supplier["id"]) if b["id"] == body.bill_id), None)
+    if body["bill_id"]:
+        bill = next((b for b in _bills(conn, supplier["id"]) if b["id"] == body["bill_id"]), None)
         if not bill:
             raise field_error("bill_id", "invalid")
-        if amount > D(bill["open"]):
-            raise AppError(422, "validation", fields={"amount": "more_than_bill"}, open=str(bill["open"]))
+        open_ = D(bill["open"]) - D(waiting["on_bill"])
+        if amount > open_:
+            raise AppError(422, "validation", fields={"amount": "more_than_bill"}, open=str(max(open_, ZERO)))
+    return supplier, source, bill, amount
+
+
+def prepare_payment(conn: psycopg.Connection, ctx: Ctx, body) -> dict:
+    """Step 1 of 2: the payment is prepared; nothing is posted until someone else approves it."""
+    data = body.model_dump()
+    supplier, source, bill, amount = _check_payment(conn, data)
+    row = conn.execute(
+        """INSERT INTO supplier_payment_requests (supplier_id, bill_id, paid_on, amount, paid_from_id, reference, note, prepared_by)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *""",
+        (supplier["id"], data["bill_id"], data["paid_on"], amount, source["id"], clean(data["reference"]), clean(data["note"]), ctx.user_id),
+    ).fetchone()
+    audit.record(conn, "purchasing.payment_prepared", ctx=ctx, entity="supplier_payment_request", entity_id=row["id"], details={
+        "ref": row["ref"], "supplier": supplier["name"], "amount": str(amount), "paid_from": source["name_en"],
+        "bill": bill["bill_no"] if bill else None})
+    return row
+
+
+def decide_payment(conn: psycopg.Connection, ctx: Ctx, request_id, approve: bool, note: str | None) -> dict:
+    """Step 2 of 2, by a different person: approving writes the payment and posts it; rejecting needs a reason."""
+    r = conn.execute("SELECT * FROM supplier_payment_requests WHERE id = %s FOR UPDATE", (request_id,)).fetchone()
+    if not r:
+        raise AppError(404, "not_found")
+    if r["status"] != "prepared":
+        raise AppError(409, "payment_not_pending")
+    if r["prepared_by"] == ctx.user_id:
+        raise AppError(403, "same_person")
+    note = clean(note)
+    if not approve:
+        if not note or len(note) < 5:
+            raise field_error("note", "required")
+        conn.execute("""UPDATE supplier_payment_requests SET status = 'rejected', decided_by = %s, decided_at = now(), decision_note = %s
+                        WHERE id = %s""", (ctx.user_id, note, request_id))
+        audit.record(conn, "purchasing.payment_rejected", ctx=ctx, entity="supplier_payment_request", entity_id=r["id"],
+                     details={"ref": r["ref"], "amount": str(r["amount"]), "note": note})
+        return {"id": r["id"], "status": "rejected"}
+    supplier, source, bill, amount = _check_payment(conn, r, skip_request=r["id"])
     row = conn.execute(
         """INSERT INTO supplier_payments (supplier_id, bill_id, paid_on, amount, paid_from_id, reference, note, created_by)
            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *""",
-        (supplier["id"], body.bill_id, body.paid_on, amount, source["id"], clean(body.reference), clean(body.note), ctx.user_id),
+        (supplier["id"], r["bill_id"], r["paid_on"], amount, source["id"], r["reference"], r["note"], r["prepared_by"]),
     ).fetchone()
     k = acc.keys(conn)
-    memo = f"Payment to {supplier['name']}" + (f" (bill {bill['bill_no']})" if bill else "")
-    acc.post(conn, day=body.paid_on, memo=memo, source_type="supplier_payment", source_id=row["id"], source_ref=row["ref"],
+    memo = f"Payment to {supplier['name']}" + (f" (bill {bill['bill_no']})" if bill else "") + f" — {r['ref']}"
+    acc.post(conn, day=r["paid_on"], memo=memo, source_type="supplier_payment", source_id=row["id"], source_ref=row["ref"],
              branch_id=ctx.active_branch_id, ctx=ctx, lines=[L(k["suppliers_payable"], amount, memo=supplier["name"]), L(source["id"], -amount)])
+    conn.execute("""UPDATE supplier_payment_requests SET status = 'approved', decided_by = %s, decided_at = now(), decision_note = %s,
+                           payment_id = %s WHERE id = %s""", (ctx.user_id, note, row["id"], request_id))
     audit.record(conn, "purchasing.supplier_paid", ctx=ctx, entity="supplier_payment", entity_id=row["id"], details={
-        "ref": row["ref"], "supplier": supplier["name"], "amount": str(amount), "paid_from": source["name_en"],
-        "bill": bill["ref"] if bill else None})
-    return row
+        "ref": row["ref"], "request": r["ref"], "supplier": supplier["name"], "amount": str(amount), "paid_from": source["name_en"],
+        "bill": bill["bill_no"] if bill else None})
+    return {"id": r["id"], "status": "approved", "payment": row}
+
+
+def payment_requests(conn: psycopg.Connection, *, status=None, supplier_id=None) -> list[dict]:
+    return conn.execute(
+        """SELECT r.*, s.name AS supplier, a.name_ar AS paid_from_ar, a.name_en AS paid_from_en, b.bill_no, p.ref AS payment_ref,
+                  pu.full_name_ar AS prepared_by_ar, pu.full_name_en AS prepared_by_en,
+                  du.full_name_ar AS decided_by_ar, du.full_name_en AS decided_by_en
+           FROM supplier_payment_requests r JOIN suppliers s ON s.id = r.supplier_id JOIN accounts a ON a.id = r.paid_from_id
+           LEFT JOIN supplier_bills b ON b.id = r.bill_id LEFT JOIN supplier_payments p ON p.id = r.payment_id
+           LEFT JOIN users pu ON pu.id = r.prepared_by LEFT JOIN users du ON du.id = r.decided_by
+           WHERE (%(st)s::text IS NULL OR r.status = %(st)s::text) AND (%(sp)s::int IS NULL OR r.supplier_id = %(sp)s::int)
+           ORDER BY (r.status = 'prepared') DESC, r.prepared_at DESC LIMIT 100""",
+        {"st": status, "sp": supplier_id},
+    ).fetchall()
 
 
 def payments(conn: psycopg.Connection, limit: int = 50) -> list[dict]:
@@ -336,8 +412,8 @@ def _bucket(days_late: int) -> str:
 
 
 def aging_for(conn: psycopg.Connection, supplier: dict, today: date | None = None) -> dict:
-    """What's owed by due date. Payments made against a bill settle that bill; other payments settle the oldest first.
-    Goods not billed yet fall due `payment terms` days after they arrived."""
+    """What's owed by due date. Payments made against a bill settle that bill; other payments and approved returns settle
+    the oldest first. Goods not billed yet fall due `payment terms` days after they arrived."""
     today = today or clinic_time.today()
     terms = timedelta(days=supplier["payment_terms_days"])
     debts = [{"due": b["due_date"], "amount": D(b["open"]), "ref": b["bill_no"]} for b in _bills(conn, supplier["id"])]
@@ -345,6 +421,8 @@ def aging_for(conn: psycopg.Connection, supplier: dict, today: date | None = Non
     debts += [{"due": r["day"] + terms, "amount": D(r["amount"]), "ref": r["ref"]} for r in unbilled["receipts"] + unbilled["maintenance"]]
     free = D(conn.execute("SELECT COALESCE(sum(amount), 0) AS n FROM supplier_payments WHERE supplier_id = %s AND bill_id IS NULL",
                           (supplier["id"],)).fetchone()["n"])
+    free += D(conn.execute("SELECT COALESCE(sum(amount), 0) AS n FROM supplier_returns WHERE supplier_id = %s AND status = 'approved'",
+                           (supplier["id"],)).fetchone()["n"])
     out = dict.fromkeys(BUCKETS, ZERO)
     oldest = None
     for d in sorted(debts, key=lambda x: x["due"]):
@@ -370,4 +448,4 @@ def aging(conn: psycopg.Connection) -> dict:
            FROM supplier_bills b JOIN suppliers s ON s.id = b.supplier_id
            WHERE b.due_date <= %s ORDER BY b.due_date""", (clinic_time.today() + timedelta(days=14),)).fetchall()
     return {"rows": rows, "totals": totals, "due_soon": [b for b in due_soon if b["open"] > 0], "bills": _bills(conn),
-            "payments": payments(conn), "today": clinic_time.today()}
+            "payments": payments(conn), "requests": payment_requests(conn), "today": clinic_time.today()}
