@@ -10,6 +10,7 @@ from app.core.visits_api import router as visits_router
 from app.core.laser_api import router as laser_router
 from app.core.dental_api import router as dental_router
 from app.core.complaints_api import router as complaints_router
+from app.core.inventory_api import router as inventory_router
 from app.core.workspace import role_router, workspace_home
 from app.storage.db import get_conn
 
@@ -27,6 +28,8 @@ router.include_router(visits_router)
 router.include_router(laser_router)
 router.include_router(dental_router)
 router.include_router(complaints_router)
+# /api/doctor/inventory/... (using stock, reporting device faults)
+router.include_router(inventory_router)
 
 
 @router.get("/home")

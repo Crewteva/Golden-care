@@ -31,8 +31,8 @@ SYNC_LOCK = 727_010
 METHOD_ACCOUNT = {"cash": "cash_drawer", "card": "card_clearing", "instapay": "instapay_clearing", "wallet": "wallet_clearing",
                   "credit": "patient_credit"}
 CLEARING = ("card_clearing", "instapay_clearing", "wallet_clearing")
-# Balances kept equal to the patient records; changed only by billing, never by hand.
-CONTROLLED = ("receivables", "patient_credit", "deferred_packages")
+# Balances kept equal to the patient records (billing) and the stock / supplier records (inventory); never posted by hand.
+CONTROLLED = ("receivables", "patient_credit", "deferred_packages", "inventory", "suppliers_payable")
 NORMAL_DEBIT = ("asset", "expense")
 SOURCE_GROUPS = {
     "billing": ("invoice", "invoice_void", "package_use", "package_use_void", "package_done", "package_cancel", "receipt",
@@ -41,6 +41,7 @@ SOURCE_GROUPS = {
     "money": ("transfer", "settlement"),
     "doctors": ("payout",),
     "labs": ("lab_case", "lab_payment"),
+    "stock": ("stock_receipt", "stock_use", "stock_loss", "stock_count", "supplier_payment", "maintenance"),
     "manual": ("manual", "reversal"),
 }
 
@@ -546,6 +547,20 @@ def _source_link(conn: psycopg.Connection, e: dict) -> dict | None:
         return {"kind": "expense", "id": sid}
     if t == "payout":
         return {"kind": "payout", "id": sid}
+    if t == "stock_receipt":
+        row = conn.execute("SELECT po_id, supplier_id FROM goods_receipts WHERE id = %s", (sid,)).fetchone()
+        if row:
+            return {"kind": "order", "id": str(row["po_id"])} if row["po_id"] else {"kind": "supplier", "id": str(row["supplier_id"])}
+    if t == "supplier_payment":
+        row = conn.execute("SELECT supplier_id FROM supplier_payments WHERE id = %s", (sid,)).fetchone()
+        return {"kind": "supplier", "id": str(row["supplier_id"])} if row else None
+    if t == "stock_count":
+        return {"kind": "count", "id": sid}
+    if t in ("stock_use", "stock_loss"):
+        return {"kind": "stock_moves", "id": sid}
+    if t == "maintenance":
+        row = conn.execute("SELECT device_id FROM device_maintenance WHERE id = %s", (sid,)).fetchone()
+        return {"kind": "device", "id": str(row["device_id"])} if row else None
     return None
 
 

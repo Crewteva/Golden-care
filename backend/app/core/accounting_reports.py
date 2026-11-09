@@ -74,7 +74,8 @@ def overview(conn: psycopg.Connection) -> dict:
         "today": today,
         "money": money,
         "money_total": sum((D(a["balance"]) for a in money), ZERO),
-        "owed": {k: by_key[k]["balance"] for k in ("receivables", "patient_credit", "deferred_packages", "doctors_payable", "labs_payable", "vat_payable")
+        "owed": {k: by_key[k]["balance"] for k in ("receivables", "patient_credit", "deferred_packages", "doctors_payable", "labs_payable",
+                                                             "suppliers_payable", "vat_payable", "inventory")
                  if k in by_key},
         "this_month": months[-1],
         "months": months,
@@ -95,9 +96,16 @@ def reconciliation(conn: psycopg.Connection) -> list[dict]:
 
     receivables = D(conn.execute("SELECT COALESCE(sum(total - paid_total), 0) AS b FROM invoices WHERE status = 'issued'").fetchone()["b"])
     credit = D(conn.execute("SELECT COALESCE(sum(amount), 0) AS b FROM patient_credit").fetchone()["b"])
+    stock = D(conn.execute("SELECT COALESCE(round(sum(qty_on_hand * unit_cost), 2), 0) AS b FROM stock_lots").fetchone()["b"])
+    suppliers = D(conn.execute(
+        """SELECT (SELECT COALESCE(sum(total), 0) FROM goods_receipts)
+                + (SELECT COALESCE(sum(cost), 0) FROM device_maintenance WHERE paid_from_id IS NULL)
+                - (SELECT COALESCE(sum(amount), 0) FROM supplier_payments) AS b""").fetchone()["b"])
     return [
         {"code": "receivables", "ledger": bal("receivables", 1), "records": receivables},
         {"code": "patient_credit", "ledger": bal("patient_credit", -1), "records": credit},
+        {"code": "inventory", "ledger": bal("inventory", 1), "records": stock},
+        {"code": "suppliers_payable", "ledger": bal("suppliers_payable", -1), "records": suppliers},
     ]
 
 

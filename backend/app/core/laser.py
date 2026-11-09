@@ -93,7 +93,7 @@ def start(conn: psycopg.Connection, ctx: Ctx, appointment_id) -> dict:
                          (appt["patient_id"],)).fetchone()["n"]
     device = conn.execute(
         """
-        SELECT * FROM devices WHERE kind = 'laser' AND is_active
+        SELECT * FROM devices WHERE kind = 'laser' AND is_active AND status = 'working'
         ORDER BY (room_id IS NOT DISTINCT FROM %s) DESC, (id IS NOT DISTINCT FROM %s) DESC, name LIMIT 1
         """,
         (appt["room_id"], previous["device_id"] if previous else None),
@@ -180,8 +180,12 @@ def _clean(value):
 
 def save(conn: psycopg.Connection, ctx: Ctx, session_id, body: LaserSessionIn) -> None:
     _draft_of_operator(conn, ctx, session_id)
-    if body.device_id and not conn.execute("SELECT 1 FROM devices WHERE id = %s AND is_active", (body.device_id,)).fetchone():
-        raise AppError(422, "validation", fields={"device_id": "invalid"})
+    if body.device_id:
+        dv = conn.execute("SELECT status FROM devices WHERE id = %s AND is_active", (body.device_id,)).fetchone()
+        if not dv:
+            raise AppError(422, "validation", fields={"device_id": "invalid"})
+        if dv["status"] != "working":
+            raise AppError(409, "device_out_of_service", fields={"device_id": "device_out_of_service"}, device_status=dv["status"])
     checklist = {k: bool(v) for k, v in body.checklist.items() if k in CHECKLIST}
     conn.execute(
         """
@@ -239,6 +243,8 @@ def sign(conn: psycopg.Connection, ctx: Ctx, session_id) -> None:
         raise AppError(422, "laser_incomplete", fields=problems)
 
     device = conn.execute("SELECT * FROM devices WHERE id = %s FOR UPDATE", (s["device_id"],)).fetchone()
+    if device["status"] != "working":  # out of service or under maintenance (stock & devices)
+        raise AppError(409, "device_out_of_service", fields={"device_id": "device_out_of_service"}, device_status=device["status"])
     recorded = sum(a["pulses"] for a in rows)
     check = counter_check(s, device["pulse_counter"], recorded)
     if s["counter_end"] < device["pulse_counter"]:
@@ -271,8 +277,9 @@ def save_device(conn: psycopg.Connection, ctx: Ctx, body: DeviceIn, device_id: i
             if device_id is None:
                 row = conn.execute(
                     """
-                    INSERT INTO devices (kind, name, model, serial_no, room_id, pulse_counter, is_active)
-                    VALUES ('laser', %(name)s, %(model)s, %(serial)s, %(room)s, %(counter)s, %(active)s) RETURNING *
+                    INSERT INTO devices (kind, type_id, name, model, serial_no, room_id, pulse_counter, is_active)
+                    VALUES ('laser', (SELECT id FROM device_types WHERE is_laser ORDER BY is_active DESC, id LIMIT 1),
+                            %(name)s, %(model)s, %(serial)s, %(room)s, %(counter)s, %(active)s) RETURNING *
                     """,
                     values,
                 ).fetchone()

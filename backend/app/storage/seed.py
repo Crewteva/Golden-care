@@ -80,6 +80,13 @@ PERMISSIONS = [
     ("accounting.post", "accounting", "تسجيل القيود والمصروفات ومستحقات الأطباء", "Post entries, expenses & doctor payouts"),
     ("accounting.approve", "accounting", "اعتماد مستحقات الأطباء وإقفال الشهر", "Approve doctor payouts & month closing"),
     ("accounting.setup", "accounting", "إدارة دليل الحسابات", "Manage the chart of accounts"),
+    ("inventory.view", "inventory", "عرض المخزون والمشتريات والأجهزة", "View stock, purchasing & devices"),
+    ("inventory.manage", "inventory", "إدارة المخزون: الاستلام والإعدام والجرد وأوامر الشراء", "Manage stock: receiving, write-offs, counts & orders"),
+    ("inventory.use", "inventory", "صرف مستهلكات لغرفة أو زيارة", "Use stock for a room or a visit"),
+    ("inventory.approve", "inventory", "اعتماد أوامر الشراء وفروق الجرد", "Approve purchase orders & count differences"),
+    ("purchasing.pay", "inventory", "تسجيل فواتير الموردين وسدادها", "Record & pay supplier bills"),
+    ("devices.manage", "inventory", "إدارة الأجهزة الطبية وصيانتها", "Manage medical devices & maintenance"),
+    ("devices.report", "inventory", "الإبلاغ عن عطل في جهاز", "Report a device fault"),
 ]
 
 CLINICAL = ["doctor", "nurse", "medical_director"]
@@ -136,6 +143,13 @@ PERMISSION_DEFAULTS = {
     "accounting.post": ["accountant"],
     "accounting.approve": ["management"],
     "accounting.setup": ["accountant"],
+    "inventory.view": ["inventory", "management", "accountant", "auditor"],
+    "inventory.manage": ["inventory"],
+    "inventory.use": ["nurse", "doctor", "inventory"],
+    "inventory.approve": ["management"],
+    "purchasing.pay": ["accountant"],
+    "devices.manage": ["inventory"],
+    "devices.report": ["nurse", "doctor", "inventory"],
 }
 
 # Synthetic people only. Never real staff or patients.
@@ -168,6 +182,7 @@ def run_seed(conn: psycopg.Connection) -> None:
     from app.storage.demo_dental import seed_demo_complaints, seed_demo_dental
     from app.storage.demo_billing import seed_demo_billing
     from app.storage.demo_accounting import seed_demo_accounting
+    from app.storage.demo_inventory import seed_demo_inventory
     from app.core.accounting import sync as post_to_journal
 
     with conn.transaction():
@@ -188,6 +203,7 @@ def run_seed(conn: psycopg.Connection) -> None:
         post_to_journal(conn)
         if settings.seed_demo:
             seed_demo_accounting(conn, branch_id)
+            seed_demo_inventory(conn, branch_id)
 
 
 def _grant(conn: psycopg.Connection, role: str, permission: str) -> None:

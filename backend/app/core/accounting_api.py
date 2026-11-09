@@ -85,7 +85,7 @@ def edit_account(account_id: int, body: AccountIn, ctx: Ctx = Depends(can_setup)
 # --- journal ---
 
 @router.get("/journal")
-def journal(q: str | None = None, group: Literal["billing", "expenses", "money", "doctors", "labs", "manual"] | None = None,
+def journal(q: str | None = None, group: Literal["billing", "expenses", "money", "doctors", "labs", "stock", "manual"] | None = None,
             date_from: date | None = None, date_to: date | None = None, account_id: int | None = None, page: int = Query(1, ge=1),
             _: Ctx = Depends(can_view), conn: Conn = Depends(synced)):
     return acc.journal(conn, q_text=q, group=group, date_from=date_from, date_to=date_to, account_id=account_id, page=page)

@@ -21,7 +21,7 @@ from app.core.session import Ctx
 
 D = Decimal
 # Expense categories the system posts by itself: picked automatically, never by hand.
-AUTO_EXPENSES = ("doctor_fees", "lab_costs", "cash_short")
+AUTO_EXPENSES = ("doctor_fees", "lab_costs", "cash_short", "consumables_used", "stock_losses", "device_maintenance")
 METHOD_CLEARING = {"card": "card_clearing", "instapay": "instapay_clearing", "wallet": "wallet_clearing"}
 
 
