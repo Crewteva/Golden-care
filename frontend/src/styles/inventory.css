@@ -145,9 +145,19 @@ td.row-actions {
 
 /* on hand vs. minimum gauge */
 .onhand {
-  display: grid;
-  gap: 5px;
-  justify-items: end;
+  display: inline-grid;
+  gap: 6px;
+  justify-items: start;
+  white-space: nowrap;
+}
+.onhand strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+.store-cell {
+  min-width: 170px;
+  font-size: 0.86rem;
 }
 .level {
   position: relative;

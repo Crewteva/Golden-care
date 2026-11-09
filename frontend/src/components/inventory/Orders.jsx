@@ -57,7 +57,7 @@ export default function Orders() {
                   <tr key={o.id}>
                     <td><Link to={`${base}/orders/${o.id}`} className="mrn">{o.ref}</Link></td>
                     <td className="cell-wrap"><strong>{o.supplier}</strong><small className="muted" style={{ display: 'block' }}>{tx(`${o.line_count} صنف`, `${o.line_count} item${o.line_count === 1 ? '' : 's'}`)}</small></td>
-                    <td>{lang === 'ar' ? o.store_ar : o.store_en}</td>
+                    <td className="cell-wrap store-cell">{lang === 'ar' ? o.store_ar : o.store_en}</td>
                     <td><bdi>{dayLabelShort(o.ordered_on, locale)}</bdi>{o.expected_on && <small className="muted" style={{ display: 'block' }}>{tx('متوقع', 'Due')} <bdi>{dayLabelShort(o.expected_on, locale)}</bdi></small>}</td>
                     <td className="num"><strong>{money(o.total, locale)}</strong></td>
                     <td><ReceivedBar value={o.received_value} total={o.total} /></td>

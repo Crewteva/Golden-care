@@ -75,7 +75,7 @@ export default function Stock() {
                     <tr key={r.id} className={r.is_active ? '' : 'row-muted'}>
                       <td className="cell-wrap"><Link to={`${base}/stock/${r.id}`} className="strong-link">{pick(r)}</Link>
                         <small className="muted" style={{ display: 'block' }}>{pick(r, 'category') || tx('بدون تصنيف', 'No category')}{!r.is_active && <> · {tx('موقوف', 'Switched off')}</>}</small></td>
-                      <td><div className="onhand"><strong className="num">{qty(r.on_hand, locale)}</strong> <span className="muted">{pick(r, 'unit')}</span><Level onHand={r.on_hand} min={r.min_qty} /></div></td>
+                      <td><div className="onhand"><span><strong className="num">{qty(r.on_hand, locale)}</strong> <span className="muted">{pick(r, 'unit')}</span></span><Level onHand={r.on_hand} min={r.min_qty} /></div></td>
                       <td className="num">{num(r.min_qty) ? qty(r.min_qty, locale) : '—'}</td>
                       <td>{r.next_expiry ? <span className={days <= 60 ? 'exp-soon' : ''}><bdi>{dayLabelShort(r.next_expiry, locale)}</bdi><small className="muted" style={{ display: 'block' }}>{daysText(days, tx)}</small></span> : <span className="muted">{r.tracks_expiry ? '—' : tx('لا يتتبع', 'Not tracked')}</span>}</td>
                       <td className="num">{money(r.value, locale)}</td>
