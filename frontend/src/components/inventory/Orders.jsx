@@ -33,7 +33,7 @@ export default function Orders() {
     <div className="page reveal">
       <PageHeader eyebrow={tx('المخازن والمشتريات', 'Stock & purchasing')} title={tx('أوامر الشراء', 'Purchase orders')}
         description={options.data && (num(options.data.approval_limit) > 0
-          ? tx(`الأوامر أعلى من ${money(options.data.approval_limit, locale)} تحتاج اعتماد الإدارة قبل إرسالها للمورد.`, `Orders above ${money(options.data.approval_limit, locale)} need management approval before they go to the supplier.`)
+          ? tx(`كل أمر يعتمده شخص غير من أنشأه: حتى ${money(options.data.approval_limit, locale)} أمين مخزن آخر أو الإدارة، وأعلى من ذلك الإدارة فقط.`, `Every order is approved by someone other than its author: up to ${money(options.data.approval_limit, locale)} by another store keeper or management, above that by management only.`)
           : tx('كل أوامر الشراء تحتاج اعتماد الإدارة.', 'Every purchase order needs management approval.'))}
         actions={canManage && <Button icon="plus" onClick={() => setParams({ new: '1' })}>{tx('أمر شراء جديد', 'New order')}</Button>} />
       <section className="card">
@@ -99,7 +99,7 @@ function OrderModal({ options, order, onClose, onDone }) {
   const sent = lines.filter((l) => l.item_id && num(l.qty) > 0)
   const total = sent.reduce((s, l) => s + num(l.qty) * num(l.unit_cost), 0)
   const limit = num(options.approval_limit)
-  const needsApproval = limit <= 0 || total > limit
+  const needsManagement = limit <= 0 || total > limit
   const setH = (k) => (e) => setHead((h) => ({ ...h, [k]: e.target.value }))
   const setL = (key, k) => (e) => {
     const v = k === 'qty' ? cleanQty(e.target.value) : k === 'unit_cost' ? cleanAmount(e.target.value) : e.target.value
@@ -113,9 +113,9 @@ function OrderModal({ options, order, onClose, onDone }) {
         supplier_id: Number(head.supplier_id), store_id: Number(head.store_id), ordered_on: head.ordered_on, expected_on: head.expected_on || null, note: head.note.trim() || null,
         lines: sent.map((l) => ({ item_id: Number(l.item_id), qty: l.qty, unit_cost: l.unit_cost || '0' })),
       })
-      toast.success(row.status === 'pending_approval'
+      toast.success(row.needs_management
         ? tx(`حُفظ ${row.ref} وأُرسل لاعتماد الإدارة.`, `${row.ref} saved and sent to management for approval.`)
-        : tx(`حُفظ ${row.ref} — معتمد وجاهز للإرسال للمورد.`, `${row.ref} saved — approved and ready to send to the supplier.`))
+        : tx(`حُفظ ${row.ref} وأُرسل للاعتماد (أمين مخزن آخر أو الإدارة).`, `${row.ref} saved and sent for approval (another store keeper or management).`))
       onDone(row)
     } catch (err) {
       setError(err)
@@ -128,7 +128,7 @@ function OrderModal({ options, order, onClose, onDone }) {
     <Modal open wide onClose={onClose} busy={busy} title={o ? tx(`تعديل ${o.ref}`, `Edit ${o.ref}`) : tx('أمر شراء جديد', 'New purchase order')}
       description={tx('الأسعار شاملة الضريبة. بعد الاعتماد يُستلم الأمر على دفعة أو أكثر.', 'Prices include VAT. Once approved, the order can be received in one or more deliveries.')}
       footer={<><Button variant="ghost" onClick={onClose} disabled={busy}>{t('cancel')}</Button>
-        <Button icon={needsApproval ? 'shieldCheck' : 'check'} loading={busy} disabled={!ready} onClick={submit}>{needsApproval ? tx('حفظ وإرسال للاعتماد', 'Save & send for approval') : tx('حفظ الأمر', 'Save order')}</Button></>}>
+        <Button icon="shieldCheck" loading={busy} disabled={!ready} onClick={submit}>{tx('حفظ وإرسال للاعتماد', 'Save & send for approval')}</Button></>}>
       <div className="form">
         {error && !known && <Alert tone="danger">{errorText(error, t)}</Alert>}
         <div className="form-grid">
@@ -165,11 +165,11 @@ function OrderModal({ options, order, onClose, onDone }) {
           {fe.lines && <small className="neg">{fieldText('lines', fe.lines, t)}</small>}
         </fieldset>
         {total > 0 && (
-          <div className={`limit-note ${needsApproval ? 'over' : ''}`}>
-            <Icon name={needsApproval ? 'shieldCheck' : 'checkCircle'} size={18} />
-            <span>{needsApproval
-              ? (limit <= 0 ? tx('يحتاج اعتماد الإدارة (كل الأوامر تُعتمد).', 'Needs management approval (every order does).') : tx(`أعلى من حد الاعتماد ${money(limit, locale)}: يحتاج اعتماد الإدارة.`, `Above the ${money(limit, locale)} approval limit: management must approve it.`))
-              : tx(`في حدود ${money(limit, locale)}: يُعتمد تلقائيًا.`, `Within the ${money(limit, locale)} limit: approved automatically.`)}</span>
+          <div className={`limit-note ${needsManagement ? 'over' : ''}`}>
+            <Icon name={needsManagement ? 'shieldCheck' : 'users'} size={18} />
+            <span>{needsManagement
+              ? (limit <= 0 ? tx('يحتاج اعتماد الإدارة (كل الأوامر).', 'Needs management approval (every order does).') : tx(`أعلى من حد الاعتماد ${money(limit, locale)}: تعتمده الإدارة فقط.`, `Above the ${money(limit, locale)} approval limit: only management can approve it.`))
+              : tx(`في حدود ${money(limit, locale)}: يعتمده أمين مخزن آخر أو الإدارة — ليس أنت.`, `Within the ${money(limit, locale)} limit: another store keeper or management approves it — not you.`)}</span>
           </div>
         )}
         <TextArea label={tx('ملاحظة للمورد أو للإدارة', 'Note for the supplier or management')} optional rows={2} value={head.note} onChange={setH('note')} />
@@ -182,7 +182,7 @@ function OrderModal({ options, order, onClose, onDone }) {
 export function OrderPage() {
   const { id } = useParams()
   const { tx, pick, locale } = useI18n()
-  const { api, base, canManage, canApprove } = useInventory()
+  const { api, base, canManage, canApprove, userId } = useInventory()
   const { data, error, loading, reload } = useAsync(() => api.order(id), [id, api])
   const options = useAsync(() => api.options(), [api])
   const [modal, setModal] = useState(null)
@@ -198,6 +198,9 @@ export function OrderPage() {
   const canEdit = canManage && ['pending_approval', 'approved'].includes(o.status) && nothingIn
   const canReceive = canManage && ['approved', 'partial'].includes(o.status)
   const canCancel = canManage && ['pending_approval', 'approved', 'partial'].includes(o.status)
+  const pending = o.status === 'pending_approval'
+  const mine = o.created_by === userId
+  const mayDecide = pending && !mine && (canApprove || (canManage && !o.needs_management))
   const done = () => { setModal(null); reload() }
   return (
     <div className="page reveal">
@@ -206,18 +209,21 @@ export function OrderPage() {
         actions={<>
           {canEdit && options.data && <Button variant="ghost" icon="edit" onClick={() => setModal('edit')}>{tx('تعديل', 'Edit')}</Button>}
           {canCancel && <Button variant="ghost" icon="x" onClick={() => setModal('cancel')}>{o.status === 'partial' ? tx('إغلاق الباقي', 'Close the rest') : tx('إلغاء', 'Cancel order')}</Button>}
-          {o.status === 'pending_approval' && canApprove && <>
+          {mayDecide && <>
             <Button variant="ghost" icon="x" onClick={() => setModal('reject')}>{tx('رفض', 'Reject')}</Button>
             <Button icon="shieldCheck" onClick={() => setModal('approve')}>{tx('اعتماد', 'Approve')}</Button>
           </>}
           {canReceive && options.data && <Button icon="download" onClick={() => setModal('receive')}>{tx('استلام بضاعة', 'Receive goods')}</Button>}
         </>} />
 
-      {o.status === 'pending_approval' && (
-        <Alert tone="warn" title={tx('بانتظار اعتماد الإدارة', 'Waiting for management')}>
-          {num(o.approval_limit) > 0
-            ? tx(`الإجمالي ${money(o.total, locale)} أعلى من حد الاعتماد ${money(o.approval_limit, locale)}. لا يُستلم شيء قبل الاعتماد.`, `The total ${money(o.total, locale)} is above the ${money(o.approval_limit, locale)} approval limit. Nothing can be received until it's approved.`)
-            : tx('كل الأوامر تحتاج اعتماد الإدارة. لا يُستلم شيء قبل الاعتماد.', "Every order needs management approval. Nothing can be received until it's approved.")}
+      {pending && (
+        <Alert tone="warn" title={o.needs_management ? tx('بانتظار اعتماد الإدارة', 'Waiting for management') : tx('بانتظار اعتماد شخص ثانٍ', 'Waiting for a second person')}>
+          {o.needs_management
+            ? (num(o.approval_limit) > 0
+              ? tx(`الإجمالي ${money(o.total, locale)} أعلى من حد الاعتماد ${money(o.approval_limit, locale)}، فتعتمده الإدارة فقط.`, `The total ${money(o.total, locale)} is above the ${money(o.approval_limit, locale)} approval limit, so only management can approve it.`)
+              : tx('كل الأوامر تحتاج اعتماد الإدارة.', 'Every order needs management approval.'))
+            : tx(`في حدود ${money(o.approval_limit, locale)}: يعتمده أمين مخزن آخر أو الإدارة.`, `Within the ${money(o.approval_limit, locale)} limit: another store keeper or management approves it.`)}
+          {' '}{mine ? tx('أنشأتَ هذا الأمر، فلا يمكنك اعتماده بنفسك.', "You created this order, so you can't approve it yourself.") : tx('لا يُستلم شيء قبل الاعتماد.', "Nothing can be received until it's approved.")}
         </Alert>
       )}
       {(o.status === 'rejected' || o.cancel_reason) && (

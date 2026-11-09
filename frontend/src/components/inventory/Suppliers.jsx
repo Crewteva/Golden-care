@@ -11,7 +11,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import { errorText, fieldText } from '../../lib/errors'
 import { Aging } from './Overview'
 import { SetupModal } from './Setup'
-import { BackLink, PO_STATE, State, cleanAmount, dayLabelShort, daysBetween, daysText, money, num, today, useInventory } from './meta'
+import { BackLink, PAYMENT_STATE, PO_STATE, State, cleanAmount, dayLabelShort, daysBetween, daysText, money, num, today, useInventory } from './meta'
 
 export default function Suppliers() {
   const { tx, locale } = useI18n()
@@ -61,6 +61,7 @@ const KIND_LABEL = {
   receipt: { ar: 'استلام بضاعة', en: 'Goods received', icon: 'download' },
   maintenance: { ar: 'صيانة آجلة', en: 'Maintenance on credit', icon: 'wrench' },
   payment: { ar: 'دفعة', en: 'Payment', icon: 'cash' },
+  return: { ar: 'مرتجع', en: 'Returned goods', icon: 'refresh' },
 }
 
 export function SupplierPage() {
@@ -84,8 +85,11 @@ export function SupplierPage() {
         actions={<>
           {canManage && <Button variant="ghost" icon="edit" onClick={() => setModal('edit')}>{tx('تعديل', 'Edit')}</Button>}
           {canPay && unbilled.length > 0 && <Button variant="ghost" icon="clipboard" onClick={() => setModal('bill')}>{tx('تسجيل فاتورة المورد', 'Enter supplier bill')}</Button>}
-          {canPay && num(data.balance) > 0 && options.data && <Button icon="cash" onClick={() => setModal('pay')}>{tx('دفع للمورد', 'Pay supplier')}</Button>}
+          {canManage && <Link className="btn btn-ghost" to={`${base}/returns?new=1&supplier=${s.id}`}><Icon name="refresh" size={16} />{tx('رد دفعة للمورد', 'Return a lot')}</Link>}
+          {canPay && num(data.balance) > 0 && options.data && <Button icon="cash" onClick={() => setModal('pay')}>{tx('إعداد دفعة', 'Prepare a payment')}</Button>}
         </>} />
+
+      {data.requests.length > 0 && <PaymentRequests rows={data.requests} onDone={reload} compact />}
 
       <div className="inv-hero sup-hero">
         <div className="stock-card">
@@ -121,9 +125,9 @@ export function SupplierPage() {
                   return (
                     <tr key={`${r.kind}-${r.id}`}>
                       <td><bdi>{dayLabelShort(r.day, locale)}</bdi></td>
-                      <td><span className={`src-chip g-${r.kind === 'payment' ? 'money' : 'stock'}`}><Icon name={k.icon} size={12} />{k[lang]}</span> <span className="mrn">{r.ref}</span></td>
+                      <td><span className={`src-chip g-${r.kind === 'payment' || r.kind === 'return' ? 'money' : 'stock'}`}><Icon name={k.icon} size={12} />{k[lang]}</span> <span className="mrn">{r.ref}</span></td>
                       <td className="cell-wrap muted">{r.detail || '—'}</td>
-                      <td>{r.bill_no ? <span className="mrn">{r.bill_no}</span> : r.kind === 'payment' ? <span className="muted">{tx('على الحساب', 'On account')}</span> : <span className="muted">—</span>}</td>
+                      <td>{r.bill_no ? <span className="mrn">{r.bill_no}</span> : r.kind === 'payment' || r.kind === 'return' ? <span className="muted">{tx('على الحساب', 'On account')}</span> : <span className="muted">—</span>}</td>
                       <td className="num">{num(r.owed) ? money(r.owed, locale) : '—'}</td>
                       <td className="num pos">{num(r.paid) ? money(r.paid, locale) : '—'}</td>
                       <td className="num"><strong>{money(r.balance, locale)}</strong></td>
@@ -267,8 +271,8 @@ export function PayModal({ supplier, balance, bills, options, onClose, onDone })
     setBusy(true)
     setError(null)
     try {
-      const row = await api.pay({ supplier_id: supplier.id, bill_id: f.bill_id || null, paid_on: f.paid_on, amount: f.amount, paid_from_id: Number(f.paid_from_id), reference: f.reference.trim() || null, note: f.note.trim() || null })
-      toast.success(tx(`سُجّلت الدفعة ${row.ref} وقُيّدت.`, `Payment ${row.ref} entered and posted.`))
+      const row = await api.preparePayment({ supplier_id: supplier.id, bill_id: f.bill_id || null, paid_on: f.paid_on, amount: f.amount, paid_from_id: Number(f.paid_from_id), reference: f.reference.trim() || null, note: f.note.trim() || null })
+      toast.success(tx(`أُعدّت الدفعة ${row.ref}. لا تُقيَّد قبل أن يعتمدها شخص آخر.`, `Payment ${row.ref} prepared. Nothing is posted until someone else approves it.`))
       onDone()
     } catch (err) {
       setError(err)
@@ -277,10 +281,10 @@ export function PayModal({ supplier, balance, bills, options, onClose, onDone })
   }
   const known = ['amount', 'paid_from_id', 'paid_on', 'bill_id'].some((k) => fe[k])
   return (
-    <Modal open onClose={onClose} busy={busy} title={tx(`دفع إلى ${supplier.name}`, `Pay ${supplier.name}`)}
-      description={tx(`المستحق ${money(balance, locale)}. يُقيَّد: مدين الموردين، دائن الحساب الذي دُفع منه.`, `${money(balance, locale)} owed. Posts Suppliers payable / the account it was paid from.`)}
+    <Modal open onClose={onClose} busy={busy} title={tx(`إعداد دفعة إلى ${supplier.name}`, `Prepare a payment to ${supplier.name}`)}
+      description={tx(`المستحق ${money(balance, locale)}. الدفع بخطوتين: تُعدّها أنت، ويعتمدها شخص آخر فتُقيَّد (مدين الموردين، دائن الحساب الذي دُفع منه).`, `${money(balance, locale)} owed. Two steps: you prepare it, someone else approves it, and only then is it posted (Suppliers payable / the account it was paid from).`)}
       footer={<><Button variant="ghost" onClick={onClose} disabled={busy}>{t('cancel')}</Button>
-        <Button icon="cash" loading={busy} disabled={!num(f.amount) || num(f.amount) > cap || !f.paid_from_id} onClick={submit}>{tx(`دفع ${money(f.amount, locale)}`, `Pay ${money(f.amount, locale)}`)}</Button></>}>
+        <Button icon="shieldCheck" loading={busy} disabled={!num(f.amount) || num(f.amount) > cap || !f.paid_from_id} onClick={submit}>{tx(`إعداد ${money(f.amount, locale)} للاعتماد`, `Prepare ${money(f.amount, locale)} for approval`)}</Button></>}>
       <div className="form">
         {error && !known && <Alert tone="danger">{errorText(error, t)}</Alert>}
         <SelectField label={tx('عن فاتورة', 'Against bill')} value={f.bill_id} onChange={pickBill} placeholder={tx('على الحساب (الأقدم أولًا)', 'On account (oldest first)')}
@@ -298,6 +302,89 @@ export function PayModal({ supplier, balance, bills, options, onClose, onDone })
   )
 }
 
+// Supplier payments waiting for (or past) the second person. Approvers: purchasing or management, never who prepared it.
+function PaymentRequests({ rows, onDone, compact }) {
+  const { tx, pick, locale } = useI18n()
+  const { base, canPay, canApprove, userId } = useInventory()
+  const [deciding, setDeciding] = useState(null)
+  const waiting = rows.filter((r) => r.status === 'prepared')
+  const shown = compact ? waiting : rows.slice(0, 12)
+  if (!shown.length) return null
+  const mayDecide = canPay || canApprove
+  return (
+    <section className={`card pay-approvals ${waiting.length ? 'has-waiting' : ''}`} aria-labelledby="pay-req-h">
+      <div className="card-head">
+        <h2 id="pay-req-h"><Icon name="shieldCheck" size={18} />{tx('دفعات بانتظار الاعتماد', 'Payments awaiting approval')}{waiting.length > 0 && <span className="count-pill">{waiting.length}</span>}</h2>
+      </div>
+      <p className="muted card-sub">{tx('الدفعة لا تُقيَّد ولا تُخصم من الخزينة حتى يعتمدها شخص غير من أعدّها.', "A payment isn't posted or taken from cash until someone other than its preparer approves it.")}</p>
+      <ul className="req-list">
+        {shown.map((r) => {
+          const own = r.prepared_by === userId
+          return (
+            <li key={r.id} className={`st-${r.status}`}>
+              <span className="req-main">
+                <strong className="num">{money(r.amount, locale)}</strong>
+                <span>{compact ? r.supplier : <Link to={`${base}/suppliers/${r.supplier_id}`} className="strong-link">{r.supplier}</Link>}</span>
+                <small className="muted"><span className="mrn">{r.ref}</span> · {pick(r, 'paid_from')} · <bdi>{dayLabelShort(r.paid_on, locale)}</bdi>{r.bill_no && <> · {tx('فاتورة', 'bill')} <span className="mrn">{r.bill_no}</span></>}</small>
+                <small className="muted">{tx('أعدّها', 'Prepared by')} {pick(r, 'prepared_by')}{r.decided_by_en && <> · {r.status === 'approved' ? tx('اعتمدها', 'approved by') : tx('رفضها', 'rejected by')} {pick(r, 'decided_by')}</>}{r.payment_ref && <> · <span className="mrn">{r.payment_ref}</span></>}</small>
+                {r.status === 'rejected' && r.decision_note && <small className="neg">{r.decision_note}</small>}
+              </span>
+              <span className="req-side">
+                <State state={r.status} map={PAYMENT_STATE} />
+                {r.status === 'prepared' && mayDecide && (own
+                  ? <small className="muted own-note">{tx('أعددتَها — يعتمدها غيرك', 'Yours — someone else approves')}</small>
+                  : <Button size="sm" icon="shieldCheck" onClick={() => setDeciding(r)}>{tx('مراجعة', 'Review')}</Button>)}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      {deciding && <DecidePaymentModal r={deciding} onClose={() => setDeciding(null)} onDone={() => { setDeciding(null); onDone() }} />}
+    </section>
+  )
+}
+
+function DecidePaymentModal({ r, onClose, onDone }) {
+  const { t, tx, pick, locale } = useI18n()
+  const { api } = useInventory()
+  const toast = useToast()
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(null)
+  const [error, setError] = useState(null)
+  const decide = async (approve) => {
+    setBusy(approve ? 'approve' : 'reject')
+    setError(null)
+    try {
+      await api.decidePayment(r.id, { approve, note: note.trim() || null })
+      toast.success(approve ? tx(`اعتُمدت ${r.ref} وقُيّدت: ${money(r.amount, locale)} إلى ${r.supplier}.`, `${r.ref} approved and posted: ${money(r.amount, locale)} to ${r.supplier}.`) : tx(`رُفضت ${r.ref}.`, `${r.ref} rejected.`))
+      onDone()
+    } catch (err) {
+      setError(err)
+      setBusy(null)
+    }
+  }
+  return (
+    <Modal open onClose={onClose} busy={!!busy} title={tx(`اعتماد دفعة ${r.ref}`, `Approve payment ${r.ref}`)}
+      description={<>{r.supplier} · <strong>{money(r.amount, locale)}</strong></>}
+      footer={<><Button variant="ghost" onClick={onClose} disabled={!!busy}>{t('cancel')}</Button>
+        <Button variant="ghost" icon="x" loading={busy === 'reject'} disabled={!!busy || note.trim().length < 5} onClick={() => decide(false)}>{tx('رفض', 'Reject')}</Button>
+        <Button icon="shieldCheck" loading={busy === 'approve'} disabled={!!busy} onClick={() => decide(true)}>{tx('اعتماد وقيد', 'Approve & post')}</Button></>}>
+      <div className="form">
+        {error && !error.fields?.note && <Alert tone="danger">{errorText(error, t)}</Alert>}
+        <dl className="lot-facts">
+          <div><dt>{tx('من حساب', 'Paid from')}</dt><dd>{pick(r, 'paid_from')}</dd></div>
+          <div><dt>{tx('تاريخ الدفع', 'Paid on')}</dt><dd><bdi>{dayLabelShort(r.paid_on, locale)}</bdi></dd></div>
+          <div><dt>{tx('عن', 'Against')}</dt><dd>{r.bill_no ? <span className="mrn">{r.bill_no}</span> : tx('على الحساب (الأقدم أولًا)', 'On account (oldest first)')}</dd></div>
+          <div><dt>{tx('أعدّها', 'Prepared by')}</dt><dd>{pick(r, 'prepared_by')}</dd></div>
+          {r.reference && <div><dt>{tx('المرجع', 'Reference')}</dt><dd><bdi dir="ltr">{r.reference}</bdi></dd></div>}
+          {r.note && <div className="wide"><dt>{tx('ملاحظة', 'Note')}</dt><dd>{r.note}</dd></div>}
+        </dl>
+        <TextArea label={tx('ملاحظة (مطلوبة عند الرفض)', 'Note (needed to reject)')} optional rows={2} value={note} onChange={(e) => setNote(e.target.value)} error={fieldText('note', error?.fields?.note, t)} />
+      </div>
+    </Modal>
+  )
+}
+
 export function Payables() {
   const { tx, pick, locale } = useI18n()
   const { api, base, canPay } = useInventory()
@@ -308,6 +395,7 @@ export function Payables() {
         description={tx('ما على العيادة لكل مورد حسب تاريخ الاستحقاق. الفواتير تستحق بعد مدة السداد من تاريخها؛ الاستلامات بلا فاتورة من تاريخ الاستلام.', 'What the clinic owes each supplier by due date. Bills fall due their payment terms after the bill date; deliveries without a bill, after the delivery date.')} />
       {error ? <section className="card"><ErrorState error={error} onRetry={reload} /></section> : loading && !data ? <section className="card"><SkeletonRows rows={6} cols={6} /></section> : (
         <>
+          <PaymentRequests rows={data.requests} onDone={reload} />
           <div className="inv-hero">
             <section className="card"><div className="card-head"><h2>{tx('الإجمالي', 'All suppliers')}</h2></div><Aging totals={data.totals} /></section>
             <section className="card">
@@ -334,7 +422,7 @@ export function Payables() {
                 </table>
               </div>
             )}
-            {canPay && data.rows.length > 0 && <p className="muted note-line">{tx('للدفع افتح كشف حساب المورد.', "To pay, open the supplier's statement.")}</p>}
+            {canPay && data.rows.length > 0 && <p className="muted note-line">{tx('لإعداد دفعة افتح كشف حساب المورد.', "To prepare a payment, open the supplier's statement.")}</p>}
           </section>
           <section className="card">
             <div className="card-head"><h2>{tx('آخر المدفوعات', 'Recent payments')}</h2></div>

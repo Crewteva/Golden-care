@@ -42,7 +42,25 @@ export function inventoryApi(slug) {
     supplier: (id) => get(`/suppliers/${id}`),
     payables: () => get('/payables'),
     addBill: (body) => post('/bills', body),
-    pay: (body) => post('/payments', body),
+    preparePayment: (body) => post('/payments', body),
+    paymentRequests: (query) => get('/payments/requests', query),
+    decidePayment: (id, body) => post(`/payments/requests/${id}/decide`, body),
+
+    transfers: (query) => get('/transfers', query),
+    transfer: (id) => get(`/transfers/${id}`),
+    requestTransfer: (body) => post('/transfers', body),
+    dispatchTransfer: (id, body) => post(`/transfers/${id}/dispatch`, body),
+    receiveTransfer: (id, body) => post(`/transfers/${id}/receive`, body),
+    cancelTransfer: (id, body) => post(`/transfers/${id}/cancel`, body),
+
+    returns: (query) => get('/returns', query),
+    returnableLots: (query) => get('/returns/lots', query),
+    requestReturn: (body) => post('/returns', body),
+    decideReturn: (id, body) => post(`/returns/${id}/decide`, body),
+
+    bookings: (query) => get('/bookings', query),
+    book: (body) => post('/bookings', body),
+    cancelBooking: (id, body) => post(`/bookings/${id}/cancel`, body),
 
     devices: () => get('/devices'),
     device: (id) => get(`/devices/${id}`),

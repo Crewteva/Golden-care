@@ -92,6 +92,7 @@ export default function Overview() {
                         patient_credit: tx('أرصدة دائنة للمرضى', 'Patient credit'),
                         inventory: tx('المخزون بالتكلفة', 'Stock at cost'),
                         suppliers_payable: tx('مستحقات الموردين', 'Owed to suppliers'),
+                        stock_in_transit: tx('مخزون في الطريق بين المخازن', 'Stock in transit'),
                       }[c.code] || c.code}</span>
                       <span className="num">{money(c.ledger, locale)}</span>
                       <span className="num muted">{ok ? tx('مطابق', 'Matches') : money(c.records, locale)}</span>

@@ -17,8 +17,25 @@ export function DeviceAlertsLine({ d }) {
   return (
     <span className="dev-flags">
       {d.maintenance_alert && <Badge tone={d.maintenance_alert === 'overdue' ? 'danger' : 'warn'}><Icon name="wrench" size={12} />{d.maintenance_alert === 'overdue' ? tx(`صيانة متأخرة ${-d.days_to_due} يوم`, `Service ${-d.days_to_due}d overdue`) : tx(`صيانة ${daysText(d.days_to_due, tx)}`, `Service ${daysText(d.days_to_due, tx)}`)}</Badge>}
+      {d.calibration_alert && <Badge tone={d.calibration_alert === 'overdue' ? 'danger' : 'warn'}><Icon name="activity" size={12} />{d.calibration_alert === 'overdue' ? tx(`معايرة متأخرة ${-d.days_to_calibration} يوم`, `Calibration ${-d.days_to_calibration}d overdue`) : tx(`معايرة ${daysText(d.days_to_calibration, tx)}`, `Calibration ${daysText(d.days_to_calibration, tx)}`)}</Badge>}
+      {d.pulse_alert && <Badge tone={d.pulse_alert === 'over' ? 'danger' : 'warn'}><Icon name="sparkle" size={12} />{d.pulse_alert === 'over' ? tx('تجاوز حد النبضات', 'Pulse limit passed') : tx(`النبضات ${Math.round(num(d.pulse_used) * 100)}٪ من الحد`, `Pulses at ${Math.round(num(d.pulse_used) * 100)}% of limit`)}</Badge>}
       {d.warranty_alert && <Badge tone={d.warranty_alert === 'ended' ? 'neutral' : 'gold'}>{d.warranty_alert === 'ended' ? tx('الضمان انتهى', 'Out of warranty') : tx('الضمان ينتهي قريبًا', 'Warranty ending')}</Badge>}
       {num(d.open_faults) > 0 && <Badge tone="danger"><Icon name="alert" size={12} />{tx(`${d.open_faults} عطل مفتوح`, `${d.open_faults} open fault${d.open_faults === 1 ? '' : 's'}`)}</Badge>}
+    </span>
+  )
+}
+
+// Pulses used since the last laser service, against the rated limit.
+export function PulseGauge({ d, big }) {
+  const { tx, locale } = useI18n()
+  if (!d.pulse_limit) return null
+  const used = num(d.pulse_used)
+  const n = (v) => new Intl.NumberFormat(locale, { notation: big ? 'standard' : 'compact', maximumFractionDigits: 1 }).format(num(v))
+  return (
+    <span className={`pulse-gauge ${d.pulse_alert ? `is-${d.pulse_alert}` : ''} ${big ? 'big' : ''}`} role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(used * 100)}
+      aria-label={tx('استهلاك النبضات', 'Pulse wear')}>
+      <span className="pg-bar"><i style={{ '--w': `${Math.min(100, used * 100)}%` }} /><b aria-hidden="true" /></span>
+      <small><bdi>{n(d.pulses_since_service)} / {n(d.pulse_limit)}</bdi> · {Math.round(used * 100)}%</small>
     </span>
   )
 }
@@ -35,6 +52,7 @@ export default function Devices() {
       <PageHeader eyebrow={tx('المخازن والمشتريات', 'Stock & purchasing')} title={tx('الأجهزة الطبية', 'Medical devices')}
         description={tx('سجل الأجهزة وحالتها وخطة الصيانة والأعطال. الجهاز الذي لا يعمل لا يمكن اختياره في الجلسات.', "The device register, status, maintenance plan and faults. A device that isn't working can't be picked for a session.")}
         actions={<>
+          <Link className="btn btn-ghost" to={`${base}/bookings`}><Icon name="calendar" size={16} />{tx('الحجوزات', 'Bookings')}</Link>
           {canReport && <Button variant="ghost" icon="alert" onClick={() => setModal('fault')}>{tx('الإبلاغ عن عطل', 'Report a fault')}</Button>}
           {canDevices && <Button icon="plus" onClick={() => setModal('add')}>{tx('جهاز جديد', 'New device')}</Button>}
         </>} />
@@ -55,6 +73,8 @@ export default function Devices() {
                 <dl className="dc-facts">
                   <div><dt>{tx('الغرفة', 'Room')}</dt><dd>{pick(d, 'room') || '—'}</dd></div>
                   <div><dt>{tx('الصيانة القادمة', 'Next service')}</dt><dd>{d.next_due ? <bdi>{dayLabelShort(d.next_due, locale)}</bdi> : '—'}</dd></div>
+                  <div><dt>{tx('المعايرة القادمة', 'Next calibration')}</dt><dd>{d.next_calibration ? <bdi>{dayLabelShort(d.next_calibration, locale)}</bdi> : '—'}</dd></div>
+                  {d.pulse_limit && <div className="wide"><dt>{tx('النبضات منذ آخر صيانة', 'Pulses since service')}</dt><dd><PulseGauge d={d} /></dd></div>}
                 </dl>
                 <DeviceAlertsLine d={d} />
                 {!d.is_active && <Badge>{tx('موقوف', 'Switched off')}</Badge>}
@@ -79,6 +99,7 @@ function DeviceModal({ device, onClose, onDone }) {
     name: s(device?.name), type_id: s(device?.type_id), model: s(device?.model), serial_no: s(device?.serial_no), room_id: s(device?.room_id),
     supplier_id: s(device?.supplier_id), purchase_date: s(device?.purchase_date), purchase_price: device?.purchase_price ? String(num(device.purchase_price)) : '',
     warranty_end: s(device?.warranty_end), maintenance_every_days: s(device?.maintenance_every_days), last_maintenance_on: s(device?.last_maintenance_on), notes: s(device?.notes),
+    calibration_every_days: s(device?.calibration_every_days), last_calibration_on: s(device?.last_calibration_on), pulse_limit: s(device?.pulse_limit),
     is_active: device ? device.is_active : true,
   })
   const [busy, setBusy] = useState(false)

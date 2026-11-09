@@ -100,12 +100,15 @@ def reconciliation(conn: psycopg.Connection) -> list[dict]:
     suppliers = D(conn.execute(
         """SELECT (SELECT COALESCE(sum(total), 0) FROM goods_receipts)
                 + (SELECT COALESCE(sum(cost), 0) FROM device_maintenance WHERE paid_from_id IS NULL)
-                - (SELECT COALESCE(sum(amount), 0) FROM supplier_payments) AS b""").fetchone()["b"])
+                - (SELECT COALESCE(sum(amount), 0) FROM supplier_payments)
+                - (SELECT COALESCE(sum(amount), 0) FROM supplier_returns WHERE status = 'approved') AS b""").fetchone()["b"])
+    transit = D(conn.execute("SELECT COALESCE(sum(sent_value), 0) AS b FROM stock_transfers WHERE status = 'dispatched'").fetchone()["b"])
     return [
         {"code": "receivables", "ledger": bal("receivables", 1), "records": receivables},
         {"code": "patient_credit", "ledger": bal("patient_credit", -1), "records": credit},
         {"code": "inventory", "ledger": bal("inventory", 1), "records": stock},
         {"code": "suppliers_payable", "ledger": bal("suppliers_payable", -1), "records": suppliers},
+        {"code": "stock_in_transit", "ledger": bal("stock_in_transit", 1), "records": transit},
     ]
 
 

@@ -17,6 +17,7 @@ export function useInventory() {
     return {
       slug,
       dash,
+      userId: me.user?.id,
       base: `${dash}/inventory`,
       can,
       canView: can('inventory.view'),
@@ -28,7 +29,7 @@ export function useInventory() {
       canReport: can('devices.report'),
       api: inventoryApi(slug),
     }
-  }, [slug, can])
+  }, [slug, can, me.user?.id])
 }
 
 // Quantities: whole numbers stay whole, up to two decimals otherwise.
@@ -43,7 +44,7 @@ export const STOCK_STATE = {
   expired: { ar: 'به كمية منتهية', en: 'Has expired stock', tone: 'danger' },
 }
 export const PO_STATE = {
-  pending_approval: { ar: 'بانتظار اعتماد الإدارة', en: 'Awaiting approval', tone: 'warn' },
+  pending_approval: { ar: 'بانتظار الاعتماد', en: 'Awaiting approval', tone: 'warn' },
   approved: { ar: 'معتمد — بانتظار الاستلام', en: 'Approved — to receive', tone: 'info' },
   partial: { ar: 'استلام جزئي', en: 'Partly received', tone: 'gold' },
   received: { ar: 'استُلم بالكامل', en: 'Received', tone: 'success' },
@@ -70,6 +71,25 @@ export const MOVE_KIND = {
   use: { ar: 'صرف', en: 'Used', icon: 'activity', tone: 'out' },
   write_off: { ar: 'إعدام', en: 'Written off', icon: 'x', tone: 'loss' },
   count: { ar: 'تسوية جرد', en: 'Count adjustment', icon: 'clipboard', tone: 'adj' },
+  transfer_out: { ar: 'تحويل صادر', en: 'Sent to store', icon: 'truck', tone: 'move' },
+  transfer_in: { ar: 'تحويل وارد', en: 'From another store', icon: 'download', tone: 'move' },
+  return: { ar: 'مرتجع لمورد', en: 'Returned to supplier', icon: 'refresh', tone: 'loss' },
+}
+export const TRANSFER_STATE = {
+  requested: { ar: 'مطلوب — بانتظار الإرسال', en: 'Requested — to send', tone: 'warn' },
+  dispatched: { ar: 'في الطريق', en: 'In transit', tone: 'info' },
+  received: { ar: 'استُلم', en: 'Received', tone: 'success' },
+  cancelled: { ar: 'ملغى', en: 'Cancelled', tone: 'neutral' },
+}
+export const RETURN_STATE = {
+  pending: { ar: 'بانتظار الاعتماد', en: 'Awaiting approval', tone: 'warn' },
+  approved: { ar: 'معتمد — خرج للمورد', en: 'Approved — returned', tone: 'success' },
+  rejected: { ar: 'مرفوض', en: 'Rejected', tone: 'danger' },
+}
+export const PAYMENT_STATE = {
+  prepared: { ar: 'بانتظار اعتماد شخص ثانٍ', en: 'Awaiting a second approver', tone: 'warn' },
+  approved: { ar: 'معتمد — قُيّد', en: 'Approved — posted', tone: 'success' },
+  rejected: { ar: 'مرفوض', en: 'Rejected', tone: 'danger' },
 }
 export const ROLE_LABEL = {
   nurse: { ar: 'تمريض', en: 'Nurse' },

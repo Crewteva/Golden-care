@@ -131,7 +131,11 @@ const MEMO_AR = [
   [/^Stock used: ([\s\S]+)$/, (m) => `صرف مستهلكات: ${m[1]}`],
   [/^Stock written off \(([^)]*)\): ([\s\S]+)$/, (m) => `إعدام مخزون (${m[1]}): ${m[2]}`],
   [/^Stock count (\S+) differences \((.+)\)$/, (m) => `فروق الجرد ${m[1]} (${m[2]})`],
-  [/^Maintenance \((\w+)\) of (.+?): ([\s\S]*)$/, (m) => `${m[1] === 'repair' ? 'إصلاح' : 'صيانة دورية'} ${m[2]}: ${m[3]}`],
+  [/^Stock sent (.+?) → (.+?): ([\s\S]+)$/, (m) => `إرسال مخزون ${m[1]} ← ${m[2]}: ${m[3]}`],
+  [/^Stock received (.+?) → (.+?); short: ([\s\S]+)$/, (m) => `استلام مخزون ${m[1]} ← ${m[2]}؛ عجز: ${m[3]}`],
+  [/^Stock received (.+?) → (.+)$/, (m) => `استلام مخزون ${m[1]} ← ${m[2]}`],
+  [/^Returned to (.+?): ([\s\S]+)$/, (m) => `مرتجع إلى ${m[1]}: ${m[2]}`],
+  [/^Maintenance \((\w+)\) of (.+?): ([\s\S]*)$/, (m) => `${{ repair: 'إصلاح', calibration: 'معايرة' }[m[1]] || 'صيانة دورية'} ${m[2]}: ${m[3]}`],
   [/^Reversal of (\S+): ([\s\S]*)$/, (m) => `عكس القيد ${m[1]}: ${m[2]}`],
 ]
 export function memoText(e, lang) {
@@ -219,6 +223,7 @@ export function SourceLink({ entry }) {
     order: stock && `${dash}/inventory/orders/${link.id}`,
     supplier: stock && `${dash}/inventory/suppliers/${link.id}`,
     count: stock && `${dash}/inventory/counts/${link.id}`,
+    transfer: stock && `${dash}/inventory/transfers/${link.id}`,
     device: stock && `${dash}/inventory/devices/${link.id}`,
     stock_moves: stock && `${dash}/inventory/moves?q=${encodeURIComponent(entry.source_ref || '')}`,
   }[link.kind]
