@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from app.auth.service import start_session
 from app.core.security import hash_token
-from app.core.session import set_session_cookie
+from app.core.session import COOKIE_NAME
 from app.storage.db import get_conn
 
 router = APIRouter()
@@ -19,5 +19,5 @@ def devshot(email: str, to: str, request: Request, conn: psycopg.Connection = De
                  (role["role_code"], role["branch_id"], hash_token(token)))
     conn.commit()
     resp = RedirectResponse(to, status_code=302)
-    set_session_cookie(resp, token, user["kind"])
+    resp.set_cookie(COOKIE_NAME, token, httponly=True, secure=False, samesite="lax", path="/")
     return resp
