@@ -7,9 +7,12 @@ const ITEMS = [
   { to: 'inventory', icon: 'box', ar: 'نظرة عامة', en: 'Overview', note: { ar: 'قيمة المخزون والتنبيهات وما ينتظر', en: "Stock value, alerts and what's waiting" } },
   { to: 'inventory/stock', icon: 'layers', ar: 'أرصدة المخزون', en: 'Stock on hand', note: { ar: 'بالتشغيلة والصلاحية', en: 'By lot and expiry' } },
   { to: 'inventory/counts', icon: 'clipboard', ar: 'الجرد', en: 'Stock counts', note: { ar: 'جرد أعمى ← اعتماد الفروق', en: 'Blind count → differences approved' } },
-  { to: 'inventory/orders', icon: 'truck', ar: 'أوامر الشراء', en: 'Purchase orders', note: { ar: 'أعلى من الحد ← اعتماد الإدارة', en: 'Above the limit → management approves' } },
-  { to: 'inventory/payables', icon: 'calendar', ar: 'مستحقات الموردين', en: 'Supplier payables', note: { ar: 'أعمار الديون والدفع', en: 'Aging and payments' } },
-  { to: 'inventory/devices', icon: 'monitor', ar: 'الأجهزة الطبية', en: 'Medical devices', note: { ar: 'الحالة والصيانة والأعطال', en: 'Status, maintenance and faults' } },
+  { to: 'inventory/orders', icon: 'truck', ar: 'أوامر الشراء', en: 'Purchase orders', note: { ar: 'يعتمدها شخص ثانٍ؛ أعلى من الحد الإدارة', en: 'A second person approves; above the limit, management' } },
+  { to: 'inventory/transfers', icon: 'swap', ar: 'التحويلات بين المخازن', en: 'Transfers between stores', note: { ar: 'طلب ← إرسال ← استلام بالعجز', en: 'Request → send → receive, shortages noted' } },
+  { to: 'inventory/returns', icon: 'refresh', ar: 'المرتجعات للموردين', en: 'Returns to suppliers', note: { ar: 'الدفعة نفسها، باعتماد شخص ثانٍ', en: 'The exact lot, approved by a second person' } },
+  { to: 'inventory/payables', icon: 'calendar', ar: 'مستحقات الموردين', en: 'Supplier payables', note: { ar: 'الأعمار واعتماد الدفعات', en: 'Aging and payment approvals' } },
+  { to: 'inventory/devices', icon: 'monitor', ar: 'الأجهزة الطبية', en: 'Medical devices', note: { ar: 'الصيانة والمعايرة والنبضات والأعطال', en: 'Service, calibration, pulses and faults' } },
+  { to: 'inventory/bookings', icon: 'calendar', ar: 'حجز الأجهزة', en: 'Device booking', note: { ar: 'بلا تداخل، والجهاز المعطل لا يُحجز', en: "No overlaps; broken devices can't be booked" } },
   { to: 'inventory/setup', icon: 'filter', ar: 'القوائم والإعدادات', en: 'Lists & settings', note: { ar: 'الأصناف والموردون وحد الاعتماد', en: 'Items, suppliers and the approval limit' } },
 ]
 

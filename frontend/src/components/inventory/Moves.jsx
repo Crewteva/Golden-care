@@ -6,7 +6,7 @@ import { useAsync, useDebounced } from '../useAsync'
 import { useI18n } from '../../i18n/I18nContext'
 import { MOVE_KIND, MoveChip, dayLabelShort, money, num, qty, useInventory } from './meta'
 
-const KINDS = ['', 'receive', 'use', 'write_off', 'count']
+const KINDS = ['', 'receive', 'use', 'write_off', 'count', 'transfer_out', 'transfer_in', 'return']
 
 // Every quantity that went in or out, with the document behind it.
 export default function Moves() {
@@ -77,5 +77,7 @@ export default function Moves() {
 function DocLink({ m }) {
   const { base } = useInventory()
   if (m.doc_type === 'count') return <Link to={`${base}/counts/${m.doc_id}`} className="mrn">{m.doc_ref}</Link>
+  if (m.doc_type === 'transfer') return <Link to={`${base}/transfers/${m.doc_id}`} className="mrn">{m.doc_ref}</Link>
+  if (m.doc_type === 'return') return <Link to={`${base}/returns?status=`} className="mrn">{m.doc_ref}</Link>
   return <span className="mrn">{m.doc_ref}</span>
 }

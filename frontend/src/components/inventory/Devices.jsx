@@ -9,6 +9,7 @@ import { useToast } from '../Toast'
 import { useAsync } from '../useAsync'
 import { useI18n } from '../../i18n/I18nContext'
 import { errorText, fieldText } from '../../lib/errors'
+import { clock } from '../../lib/clinicTime'
 import { FaultList, FixModal, ReportFaultModal } from './Faults'
 import { BackLink, DEVICE_STATE, State, cleanAmount, dayLabelShort, daysText, money, num, today, useInventory } from './meta'
 
@@ -106,15 +107,18 @@ function DeviceModal({ device, onClose, onDone }) {
   const [error, setError] = useState(null)
   const fe = error?.fields || {}
   const set = (k, clean) => (e) => setF((x) => ({ ...x, [k]: clean ? clean(e.target.value) : e.target.value }))
+  const digits = (n) => (v) => v.replace(/\D/g, '').slice(0, n)
+  const isLaser = !!o?.device_types.find((x) => String(x.id) === f.type_id)?.is_laser
   const submit = async () => {
     setBusy(true)
     setError(null)
-    const nul = (v) => (v.trim() ? v.trim() : null)
+    const nul =(v) => (v.trim() ? v.trim() : null)
     try {
       const row = await api.saveDevice(device?.id, {
         name: f.name.trim(), type_id: Number(f.type_id), model: nul(f.model), serial_no: nul(f.serial_no), room_id: Number(f.room_id) || null, supplier_id: Number(f.supplier_id) || null,
         purchase_date: f.purchase_date || null, purchase_price: f.purchase_price || null, warranty_end: f.warranty_end || null,
         maintenance_every_days: Number(f.maintenance_every_days) || null, last_maintenance_on: f.last_maintenance_on || null, notes: nul(f.notes), is_active: f.is_active,
+        calibration_every_days: Number(f.calibration_every_days) || null, last_calibration_on: f.last_calibration_on || null, pulse_limit: isLaser ? Number(f.pulse_limit) || null : null,
       })
       toast.success(device ? tx('حُفظت بيانات الجهاز.', 'Device saved.') : tx(`سُجّل ${row.name}.`, `${row.name} registered.`))
       onDone(row)
@@ -145,6 +149,10 @@ function DeviceModal({ device, onClose, onDone }) {
             <TextField label={tx('نهاية الضمان', 'Warranty ends')} optional type="date" value={f.warranty_end} min={f.purchase_date || undefined} onChange={set('warranty_end')} error={fieldText('warranty_end', fe.warranty_end, t)} />
             <TextField label={tx('صيانة دورية كل (يوم)', 'Service every (days)')} optional inputMode="numeric" dir="ltr" value={f.maintenance_every_days} onChange={set('maintenance_every_days', (v) => v.replace(/\D/g, '').slice(0, 4))} placeholder="90" error={fieldText('maintenance_every_days', fe.maintenance_every_days, t)} />
             <TextField label={tx('آخر صيانة', 'Last serviced')} optional type="date" max={today()} value={f.last_maintenance_on} onChange={set('last_maintenance_on')} hint={tx('يُحدَّث تلقائيًا عند تسجيل صيانة', 'Updated on its own when maintenance is logged')} error={fieldText('last_maintenance_on', fe.last_maintenance_on, t)} />
+            <TextField label={tx('معايرة كل (يوم)', 'Calibrate every (days)')} optional inputMode="numeric" dir="ltr" value={f.calibration_every_days} onChange={set('calibration_every_days', digits(4))} placeholder="180" error={fieldText('calibration_every_days', fe.calibration_every_days, t)} />
+            <TextField label={tx('آخر معايرة', 'Last calibrated')} optional type="date" max={today()} value={f.last_calibration_on} onChange={set('last_calibration_on')} hint={tx('يُحدَّث تلقائيًا عند تسجيل معايرة', 'Updated on its own when a calibration is logged')} error={fieldText('last_calibration_on', fe.last_calibration_on, t)} />
+            {isLaser && <TextField className="span-2" label={tx('حد النبضات بين الصيانات', 'Pulse limit between services')} optional inputMode="numeric" dir="ltr" value={f.pulse_limit} onChange={set('pulse_limit', digits(9))} placeholder="1000000"
+              hint={tx('تنبيه عند ٩٠٪ من الحد، وتنبيه أحمر عند تجاوزه', 'Warns at 90% of the limit, red once it is passed')} error={fieldText('pulse_limit', fe.pulse_limit, t)} />}
           </div>
           <TextArea label={tx('ملاحظات', 'Notes')} optional rows={2} value={f.notes} onChange={set('notes')} />
           {device && <Checkbox label={tx('ضمن الأجهزة النشطة', 'In active use')} description={tx('الجهاز الموقوف يبقى في السجل بلا تنبيهات', 'A switched-off device stays on record without alerts')} checked={f.is_active} onChange={(e) => setF((x) => ({ ...x, is_active: e.target.checked }))} />}
@@ -189,6 +197,7 @@ export function DevicePage() {
         description={<><State state={d.status} map={DEVICE_STATE} />{d.model && <> · {d.model}</>}{d.serial_no && <> · <bdi dir="ltr">S/N {d.serial_no}</bdi></>}{pick(d, 'room') && <> · {pick(d, 'room')}</>}</>}
         actions={<>
           {canReport && d.is_active && <Button variant="ghost" icon="alert" onClick={() => setModal('fault')}>{tx('عطل', 'Report fault')}</Button>}
+          {(canReport || canDevices) && d.is_active && d.status === 'working' && <Link className="btn btn-ghost" to={`${base}/bookings?device=${d.id}`}><Icon name="calendar" size={16} />{tx('حجز', 'Book')}</Link>}
           {canDevices && <>
             <Button variant="ghost" icon="edit" onClick={() => setModal('edit')}>{tx('تعديل', 'Edit')}</Button>
             <Button variant="ghost" icon="x" onClick={() => setModal('delete')}>{tx('حذف', 'Delete')}</Button>
@@ -209,6 +218,18 @@ export function DevicePage() {
           <div className="stat-value small">{d.next_due ? <bdi>{dayLabelShort(d.next_due, locale)}</bdi> : '—'}</div>
           <div className="stat-foot">{d.maintenance_every_days ? <>{tx(`كل ${d.maintenance_every_days} يوم`, `Every ${d.maintenance_every_days} days`)}{d.days_to_due !== null && <> · {daysText(d.days_to_due, tx)}</>}</> : tx('بلا خطة صيانة', 'No service plan')}</div>
         </div>
+        <div className={`stat ${d.calibration_alert === 'overdue' ? 'fig-danger' : d.calibration_alert ? 'fig-warn' : ''}`}>
+          <div className="stat-label">{tx('المعايرة القادمة', 'Next calibration')}</div>
+          <div className="stat-value small">{d.next_calibration ? <bdi>{dayLabelShort(d.next_calibration, locale)}</bdi> : '—'}</div>
+          <div className="stat-foot">{d.calibration_every_days ? <>{tx(`كل ${d.calibration_every_days} يوم`, `Every ${d.calibration_every_days} days`)}{d.days_to_calibration !== null && <> · {daysText(d.days_to_calibration, tx)}</>}</> : tx('بلا خطة معايرة', 'No calibration plan')}</div>
+        </div>
+        {d.pulse_limit && (
+          <div className={`stat ${d.pulse_alert === 'over' ? 'fig-danger' : d.pulse_alert ? 'fig-warn' : ''}`}>
+            <div className="stat-label">{tx('استهلاك النبضات', 'Pulse wear')}</div>
+            <div className="stat-value num">{Math.round(num(d.pulse_used) * 100)}%</div>
+            <div className="stat-foot"><PulseGauge d={d} big /></div>
+          </div>
+        )}
         <div className={`stat ${d.warranty_alert === 'ending' ? 'fig-warn' : ''}`}>
           <div className="stat-label">{tx('الضمان', 'Warranty')}</div>
           <div className="stat-value small">{d.warranty_end ? <bdi>{dayLabelShort(d.warranty_end, locale)}</bdi> : '—'}</div>
@@ -227,6 +248,20 @@ export function DevicePage() {
       </div>
 
       <section className="card">
+        <div className="card-head"><h2>{tx('الحجوزات القادمة', 'Upcoming bookings')}</h2><Link to={`${base}/bookings`} className="link-btn">{tx('جدول الحجوزات', 'Booking board')}</Link></div>
+        {!(data.bookings || []).length ? <p className="muted">{tx('لا حجوزات قادمة.', 'No upcoming bookings.')}</p> : (
+          <ul className="bk-list">
+            {data.bookings.map((b) => (
+              <li key={b.id}>
+                <span className="bk-time"><bdi>{dayLabelShort(b.starts_at, locale)}</bdi><small><bdi>{clock(b.starts_at, locale)}–{clock(b.ends_at, locale)}</bdi></small></span>
+                <span className="bk-what"><strong>{b.purpose}</strong><small className="muted"><span className="mrn">{b.ref}</span> · {pick(b, 'booked_by')}</small></span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="card">
         <div className="card-head"><h2>{tx('الأعطال', 'Faults')}</h2></div>
         {!data.faults.length ? <p className="muted">{tx('لم يُبلَّغ عن أعطال.', 'No faults reported.')}</p> : <FaultList faults={data.faults} onFix={canDevices ? (f) => setModal({ fix: f }) : null} hideDevice />}
       </section>
@@ -237,10 +272,11 @@ export function DevicePage() {
           <ol className="maint-log">
             {data.maintenance.map((m) => (
               <li key={m.id} className={`k-${m.kind}`}>
-                <span className="ml-dot"><Icon name={m.kind === 'repair' ? 'wrench' : 'refresh'} size={14} /></span>
+                <span className="ml-dot"><Icon name={{ repair: 'wrench', calibration: 'activity' }[m.kind] || 'refresh'} size={14} /></span>
                 <div className="ml-body">
                   <div className="ml-head">
-                    <strong>{m.kind === 'repair' ? tx('إصلاح', 'Repair') : tx('صيانة دورية', 'Preventive service')}</strong>
+                    <strong>{{ repair: tx('إصلاح', 'Repair'), calibration: tx('معايرة', 'Calibration') }[m.kind] || tx('صيانة دورية', 'Preventive service')}</strong>
+                    {m.pulses_reset && <Badge tone="gold">{tx('صُفّر عداد النبضات', 'Pulse count restarted')}</Badge>}
                     <span className="mrn">{m.ref}</span>
                     <bdi className="muted">{dayLabelShort(m.done_on, locale)}</bdi>
                     {m.fault_ref && <Badge tone="info">{m.fault_ref}</Badge>}
@@ -317,7 +353,7 @@ function MaintenanceModal({ device, faults, onClose, onDone }) {
   const toast = useToast()
   const { data: o } = useAsync(() => api.options(), [api])
   const input = useRef(null)
-  const [f, setF] = useState({ kind: faults.length ? 'repair' : 'preventive', done_on: today(), description: '', technician: '', supplier_id: device.supplier_id ? String(device.supplier_id) : '', cost: '', paid_from_id: '', fault_id: faults[0]?.id || '' })
+  const [f, setF] = useState({ kind: faults.length ? 'repair' : 'preventive', done_on: today(), description: '', technician: '', supplier_id: device.supplier_id ? String(device.supplier_id) : '', cost: '', paid_from_id: '', fault_id: faults[0]?.id || '', reset_pulses: false })
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -331,6 +367,7 @@ function MaintenanceModal({ device, faults, onClose, onDone }) {
     const form = new FormData()
     Object.entries(f).forEach(([k, v]) => {
       if (k === 'fault_id' && f.kind !== 'repair') return
+      if (k === 'reset_pulses') { if (v && device.pulse_limit) form.append(k, 'true'); return }
       if (String(v).trim()) form.append(k, String(v).trim())
     })
     if (file) form.append('file', file)
@@ -352,7 +389,8 @@ function MaintenanceModal({ device, faults, onClose, onDone }) {
         <div className="form">
           {error && !known && <Alert tone="danger">{errorText(error, t)}</Alert>}
           <ChoiceGroup legend={tx('النوع', 'Kind')} name="mt-kind" value={f.kind} onChange={(v) => setF((x) => ({ ...x, kind: v }))}
-            options={[{ value: 'preventive', label: tx('صيانة دورية', 'Preventive service') }, { value: 'repair', label: tx('إصلاح', 'Repair') }]} />
+            options={[{ value: 'preventive', label: tx('صيانة دورية', 'Preventive service') }, { value: 'repair', label: tx('إصلاح', 'Repair') }, { value: 'calibration', label: tx('معايرة', 'Calibration') }]} />
+          {f.kind === 'calibration' && <p className="muted">{tx('تبدأ دورة المعايرة من تاريخ هذه المعايرة.', 'The calibration plan restarts from this date.')}</p>}
           <div className="form-grid">
             <TextField label={tx('التاريخ', 'Done on')} type="date" max={today()} min={o.first_open_day || undefined} value={f.done_on} onChange={set('done_on')} error={fieldText('done_on', fe.done_on, t)} />
             <TextField label={tx('الفني', 'Technician')} optional dir="auto" value={f.technician} onChange={set('technician')} />
@@ -362,6 +400,11 @@ function MaintenanceModal({ device, faults, onClose, onDone }) {
             )}
           </div>
           <TextArea label={tx('ما تم', 'What was done')} rows={2} value={f.description} onChange={set('description')} error={fieldText('description', fe.description, t)} />
+          {device.pulse_limit && f.kind !== 'calibration' && (
+            <Checkbox label={tx('تصفير عداد النبضات (تم تغيير الرأس / صيانة الليزر)', 'Restart the pulse count (handpiece changed / laser serviced)')}
+              description={tx(`المستخدم الآن ${num(device.pulses_since_service).toLocaleString(locale)} من ${num(device.pulse_limit).toLocaleString(locale)} نبضة. العداد الكلي لا يرجع للخلف.`, `${num(device.pulses_since_service).toLocaleString(locale)} of ${num(device.pulse_limit).toLocaleString(locale)} pulses used. The lifetime counter never goes back.`)}
+              checked={f.reset_pulses} onChange={(e) => setF((x) => ({ ...x, reset_pulses: e.target.checked }))} error={fieldText('reset_pulses', fe.reset_pulses, t)} />
+          )}
           <fieldset className="lines-edit">
             <legend>{tx('التكلفة', 'Cost')}</legend>
             <div className="form-grid">

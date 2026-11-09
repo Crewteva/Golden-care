@@ -6,6 +6,9 @@ import Orders, { OrderPage } from './Orders'
 import Suppliers, { Payables, SupplierPage } from './Suppliers'
 import Devices, { DevicePage } from './Devices'
 import Faults from './Faults'
+import Transfers, { TransferPage } from './Transfers'
+import Returns from './Returns'
+import Bookings from './Bookings'
 import Setup from './Setup'
 import UseStock from './UseStock'
 
@@ -18,11 +21,15 @@ const ALL = [
   { path: 'inventory/counts/:id', nav: false, element: <CountPage /> },
   { path: 'inventory/orders', icon: 'truck', label: { ar: 'أوامر الشراء', en: 'Purchase orders' }, element: <Orders /> },
   { path: 'inventory/orders/:id', nav: false, element: <OrderPage /> },
+  { path: 'inventory/transfers', icon: 'swap', label: { ar: 'التحويلات', en: 'Transfers' }, element: <Transfers /> },
+  { path: 'inventory/transfers/:id', nav: false, element: <TransferPage /> },
+  { path: 'inventory/returns', icon: 'refresh', label: { ar: 'المرتجعات', en: 'Supplier returns' }, element: <Returns /> },
   { path: 'inventory/suppliers', icon: 'briefcase', label: { ar: 'الموردون', en: 'Suppliers' }, element: <Suppliers /> },
   { path: 'inventory/suppliers/:id', nav: false, element: <SupplierPage /> },
   { path: 'inventory/payables', icon: 'calendar', label: { ar: 'مستحقات الموردين', en: 'Supplier payables' }, element: <Payables /> },
   { path: 'inventory/devices', icon: 'monitor', label: { ar: 'الأجهزة الطبية', en: 'Medical devices' }, element: <Devices /> },
   { path: 'inventory/devices/:id', nav: false, element: <DevicePage /> },
+  { path: 'inventory/bookings', icon: 'calendar', label: { ar: 'حجز الأجهزة', en: 'Device booking' }, element: <Bookings /> },
   { path: 'inventory/faults', icon: 'alert', label: { ar: 'أعطال الأجهزة', en: 'Device faults' }, element: <Faults /> },
   { path: 'inventory/setup', icon: 'filter', label: { ar: 'القوائم والإعدادات', en: 'Lists & settings' }, element: <Setup /> },
 ]
@@ -40,6 +47,7 @@ export function inventoryPages(nav) {
 export function inventoryUsePages() {
   return [
     { path: 'inventory/use', icon: 'box', label: { ar: 'صرف مستهلكات', en: 'Use stock' }, element: <UseStock />, permission: 'inventory.use' },
+    { path: 'inventory/bookings', icon: 'calendar', label: { ar: 'حجز الأجهزة', en: 'Device booking' }, element: <Bookings />, permission: 'devices.report' },
     { path: 'inventory/faults', icon: 'alert', label: { ar: 'أعطال الأجهزة', en: 'Device faults' }, element: <Faults />, permission: 'devices.report' },
   ]
 }

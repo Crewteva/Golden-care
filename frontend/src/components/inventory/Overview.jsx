@@ -34,6 +34,7 @@ export default function Overview() {
                 <span id="sv-h">{tx('قيمة المخزون بالتكلفة', 'Stock value at cost')}</span>
                 <strong className="num">{money(data.stock_value, locale)}</strong>
                 <small>{tx(`${fmtNumber(data.items, locale)} صنف نشط`, `${fmtNumber(data.items, locale)} active items`)}</small>
+                {num(data.in_transit) > 0 && <Link to={`${base}/transfers?status=dispatched`} className="sc-transit"><Icon name="truck" size={14} />{tx(`و${money(data.in_transit, locale)} في الطريق بين المخازن`, `+ ${money(data.in_transit, locale)} on the road between stores`)}</Link>}
               </div>
               <ul className="sc-alerts">
                 <AlertTile to={`${base}/stock?status=below_min`} icon="trending" n={data.counts.below_min} label={tx('تحت الحد الأدنى', 'Below minimum')} tone="warn" />
@@ -130,15 +131,27 @@ export function Aging({ totals }) {
 
 function Waiting({ data }) {
   const { tx, locale } = useI18n()
-  const { base, canApprove, canDevices, canManage } = useInventory()
+  const { base, canApprove, canDevices, canManage, canPay, userId } = useInventory()
   const n = (v) => fmtNumber(v, locale)
   const overdue = data.devices.maintenance.filter((d) => d.maintenance_alert === 'overdue').length
+  const calOverdue = (data.devices.calibration || []).filter((d) => d.calibration_alert === 'overdue').length
   const items = [
-    ...data.pending_orders.map((o) => ({ to: `${base}/orders/${o.id}`, icon: 'clipboard', tone: canApprove ? 'act' : '', text: tx(`أمر الشراء ${o.ref} (${o.supplier}، ${money(o.total, locale)}) بانتظار اعتماد الإدارة`, `Order ${o.ref} (${o.supplier}, ${money(o.total, locale)}) is waiting for management approval`) })),
+    ...data.pending_orders.map((o) => ({ to: `${base}/orders/${o.id}`, icon: 'clipboard', tone: o.created_by !== userId && (canApprove || (canManage && !o.needs_management)) ? 'act' : '',
+      text: o.needs_management
+        ? tx(`أمر الشراء ${o.ref} (${o.supplier}، ${money(o.total, locale)}) بانتظار اعتماد الإدارة`, `Order ${o.ref} (${o.supplier}, ${money(o.total, locale)}) is waiting for management approval`)
+        : tx(`أمر الشراء ${o.ref} (${o.supplier}، ${money(o.total, locale)}) بانتظار اعتماد شخص ثانٍ`, `Order ${o.ref} (${o.supplier}, ${money(o.total, locale)}) is waiting for a second person to approve`) })),
+    ...(data.pending_payments || []).map((p) => ({ to: `${base}/payables`, icon: 'shieldCheck', tone: (canPay || canApprove) && p.prepared_by !== userId ? 'act' : '', text: tx(`دفعة ${p.ref} للمورد ${p.supplier} (${money(p.amount, locale)}) بانتظار الاعتماد`, `Payment ${p.ref} to ${p.supplier} (${money(p.amount, locale)}) is waiting for approval`) })),
+    ...(data.pending_returns || []).map((r) => ({ to: `${base}/returns`, icon: 'refresh', tone: canApprove || canManage ? 'act' : '', text: tx(`مرتجع ${r.ref} إلى ${r.supplier} (${money(r.amount, locale)}) بانتظار الاعتماد`, `Return ${r.ref} to ${r.supplier} (${money(r.amount, locale)}) is waiting for approval`) })),
+    ...(data.open_transfers || []).map((t) => ({ to: `${base}/transfers/${t.id}`, icon: t.status === 'dispatched' ? 'truck' : 'swap', tone: canManage ? 'act' : '',
+      text: t.status === 'dispatched'
+        ? tx(`التحويل ${t.ref} في الطريق من ${t.from_ar} إلى ${t.to_ar} — بانتظار تأكيد الاستلام`, `Transfer ${t.ref} is on the road from ${t.from_en} to ${t.to_en} — waiting for arrival`)
+        : tx(`التحويل ${t.ref} مطلوب من ${t.from_ar} إلى ${t.to_ar} — بانتظار الإرسال`, `Transfer ${t.ref} requested from ${t.from_en} to ${t.to_en} — waiting to be sent`) })),
     ...data.pending_counts.map((c) => ({ to: `${base}/counts/${c.id}`, icon: 'layers', tone: canApprove ? 'act' : '', text: tx(`فروق الجرد ${c.ref} بانتظار الاعتماد`, `Count ${c.ref} differences are waiting for approval`) })),
     data.open_faults > 0 && { to: `${base}/faults`, icon: 'alert', tone: canDevices ? 'act' : '', text: tx(`${n(data.open_faults)} بلاغ عطل مفتوح`, `${n(data.open_faults)} open fault report(s)`) },
     data.devices.maintenance.length > 0 && { to: `${base}/devices`, icon: 'refresh', tone: canDevices ? 'act' : '', text: overdue ? tx(`${n(overdue)} جهاز تأخرت صيانته`, `${n(overdue)} device(s) overdue for maintenance`) : tx(`${n(data.devices.maintenance.length)} جهاز تقترب صيانته`, `${n(data.devices.maintenance.length)} device(s) due for maintenance soon`) },
-    data.open_orders - data.pending_orders.length > 0 && { to: `${base}/orders?status=open`, icon: 'download', tone: canManage ? '' : '', text: tx(`${n(data.open_orders - data.pending_orders.length)} أمر شراء معتمد بانتظار الاستلام`, `${n(data.open_orders - data.pending_orders.length)} approved order(s) waiting for delivery`) },
+    (data.devices.calibration || []).length > 0 && { to: `${base}/devices`, icon: 'activity', tone: canDevices ? 'act' : '', text: calOverdue ? tx(`${n(calOverdue)} جهاز تأخرت معايرته`, `${n(calOverdue)} device(s) overdue for calibration`) : tx(`${n(data.devices.calibration.length)} جهاز تقترب معايرته`, `${n(data.devices.calibration.length)} device(s) due for calibration soon`) },
+    (data.devices.pulses || []).length > 0 && { to: `${base}/devices`, icon: 'sparkle', tone: canDevices ? 'act' : '', text: tx(`${n(data.devices.pulses.length)} ليزر قارب حد النبضات قبل الصيانة`, `${n(data.devices.pulses.length)} laser(s) near the pulse limit before service`) },
+    data.open_orders - data.pending_orders.length > 0 && { to: `${base}/orders?status=open`, icon: 'download', tone: '', text: tx(`${n(data.open_orders - data.pending_orders.length)} أمر شراء معتمد بانتظار الاستلام`, `${n(data.open_orders - data.pending_orders.length)} approved order(s) waiting for delivery`) },
   ].filter(Boolean)
   if (!items.length) return <p className="all-clear"><Icon name="checkCircle" size={18} />{tx('لا شيء ينتظر الآن.', 'Nothing is waiting right now.')}</p>
   return (
@@ -194,6 +207,8 @@ function DeviceAlerts({ devices, base }) {
   const rows = [
     ...devices.not_working.map((d) => ({ d, tone: 'danger', icon: 'power', text: d.status === 'maintenance' ? tx('تحت الصيانة — لا يُستخدم', 'Under maintenance — not in use') : tx('خارج الخدمة — لا يُستخدم', 'Out of service — not in use') })),
     ...devices.maintenance.map((d) => ({ d, tone: d.maintenance_alert === 'overdue' ? 'danger' : 'warn', icon: 'refresh', text: d.maintenance_alert === 'overdue' ? tx(`الصيانة متأخرة منذ ${-d.days_to_due} يوم`, `Maintenance overdue by ${-d.days_to_due} day(s)`) : tx(`الصيانة ${daysText(d.days_to_due, tx)} (${dayLabelShort(d.next_due, locale)})`, `Maintenance ${daysText(d.days_to_due, tx)} (${dayLabelShort(d.next_due, locale)})`) })),
+    ...(devices.calibration || []).map((d) => ({ d, tone: d.calibration_alert === 'overdue' ? 'danger' : 'warn', icon: 'activity', text: d.calibration_alert === 'overdue' ? tx(`المعايرة متأخرة منذ ${-d.days_to_calibration} يوم`, `Calibration overdue by ${-d.days_to_calibration} day(s)`) : tx(`المعايرة ${daysText(d.days_to_calibration, tx)} (${dayLabelShort(d.next_calibration, locale)})`, `Calibration ${daysText(d.days_to_calibration, tx)} (${dayLabelShort(d.next_calibration, locale)})`) })),
+    ...(devices.pulses || []).map((d) => ({ d, tone: d.pulse_alert === 'over' ? 'danger' : 'warn', icon: 'sparkle', text: tx(`استُهلك ${Math.round(num(d.pulse_used) * 100)}٪ من النبضات قبل الصيانة`, `${Math.round(num(d.pulse_used) * 100)}% of pulses before service used`) })),
     ...devices.warranty.map((d) => ({ d, tone: 'gold', icon: 'shield', text: tx(`الضمان ينتهي ${dayLabelShort(d.warranty_end, locale)}`, `Warranty ends ${dayLabelShort(d.warranty_end, locale)}`) })),
   ]
   if (!rows.length) return <p className="all-clear in-card"><Icon name="checkCircle" size={16} />{tx('كل الأجهزة تعمل ولا صيانة قريبة.', 'All devices working, no maintenance due.')}</p>
