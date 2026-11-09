@@ -41,7 +41,8 @@ SOURCE_GROUPS = {
     "money": ("transfer", "settlement"),
     "doctors": ("payout",),
     "labs": ("lab_case", "lab_payment"),
-    "stock": ("stock_receipt", "stock_use", "stock_loss", "stock_count", "supplier_payment", "maintenance"),
+    "stock": ("stock_receipt", "stock_use", "stock_loss", "stock_count", "transfer_out", "transfer_in", "supplier_return",
+              "supplier_payment", "maintenance"),
     "manual": ("manual", "reversal"),
 }
 
@@ -556,6 +557,11 @@ def _source_link(conn: psycopg.Connection, e: dict) -> dict | None:
         return {"kind": "supplier", "id": str(row["supplier_id"])} if row else None
     if t == "stock_count":
         return {"kind": "count", "id": sid}
+    if t in ("transfer_out", "transfer_in"):
+        return {"kind": "transfer", "id": sid}
+    if t == "supplier_return":
+        row = conn.execute("SELECT supplier_id FROM supplier_returns WHERE id = %s", (sid,)).fetchone()
+        return {"kind": "supplier", "id": str(row["supplier_id"])} if row else None
     if t in ("stock_use", "stock_loss"):
         return {"kind": "stock_moves", "id": sid}
     if t == "maintenance":

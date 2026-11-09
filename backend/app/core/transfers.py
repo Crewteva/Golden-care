@@ -137,7 +137,7 @@ def dispatch_transfer(conn: psycopg.Connection, ctx: Ctx, transfer_id, body) -> 
                            sent_value = %s WHERE id = %s""", (day, ctx.user_id, total, transfer_id))
     dst = conn.execute("SELECT * FROM stores WHERE id = %s", (t["to_store_id"],)).fetchone()
     k = acc.keys(conn)
-    acc.post(conn, day=day, memo=f"Stock sent {src['name_en']} → {dst['name_en']}: " + ", ".join(names), source_type="stock_transfer",
+    acc.post(conn, day=day, memo=f"Stock sent {src['name_en']} → {dst['name_en']}: " + ", ".join(names), source_type="transfer_out",
              source_id=t["id"], source_ref=t["ref"], branch_id=src["branch_id"], ctx=ctx,
              lines=[L(k["stock_in_transit"], total), L(k["inventory"], -total)])
     audit.record(conn, "inventory.transfer_dispatched", ctx=ctx, entity="stock_transfer", entity_id=t["id"],
@@ -189,7 +189,7 @@ def receive_transfer(conn: psycopg.Connection, ctx: Ctx, transfer_id, body) -> d
     src = conn.execute("SELECT * FROM stores WHERE id = %s", (t["from_store_id"],)).fetchone()
     k = acc.keys(conn)
     memo = f"Stock received {src['name_en']} → {dst['name_en']}" + (f"; short: {', '.join(short_items)} ({note})" if short_items else "")
-    acc.post(conn, day=day, memo=memo, source_type="stock_transfer", source_id=t["id"], source_ref=t["ref"], branch_id=dst["branch_id"], ctx=ctx,
+    acc.post(conn, day=day, memo=memo, source_type="transfer_in", source_id=t["id"], source_ref=t["ref"], branch_id=dst["branch_id"], ctx=ctx,
              lines=[L(k["inventory"], received), L(k["stock_losses"], shortage, memo="Transfer shortage" if shortage else None),
                     L(k["stock_in_transit"], -D(t["sent_value"]))])
     audit.record(conn, "inventory.transfer_received", ctx=ctx, entity="stock_transfer", entity_id=t["id"], details={
