@@ -1,6 +1,7 @@
 import RoleHome from '../../../components/RoleHome'
 import BillingStats from '../../../components/billing/BillingStats'
 import AccountingShortcuts from '../../../components/accounting/Shortcuts'
+import InventoryShortcuts from '../../../components/inventory/Shortcuts'
 
 // What this workspace will hold, from the project to-do list. Replace with real pages as they're built.
 const UPCOMING = [
@@ -8,5 +9,5 @@ const UPCOMING = [
 ]
 
 export default function Home() {
-  return <RoleHome upcoming={UPCOMING}>{(data) => <><BillingStats data={data} /><AccountingShortcuts /></>}</RoleHome>
+  return <RoleHome upcoming={UPCOMING}>{(data) => <><BillingStats data={data} /><AccountingShortcuts /><InventoryShortcuts only={['inventory', 'inventory/payables']} /></>}</RoleHome>
 }

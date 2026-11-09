@@ -83,6 +83,12 @@ export const SOURCE = {
   settlement: { ar: 'تسوية بطاقات/تحويلات', en: 'Settlement', icon: 'swap', group: 'money' },
   payout: { ar: 'صرف مستحقات طبيب', en: 'Doctor payout', icon: 'stethoscope', group: 'doctors' },
   lab_payment: { ar: 'دفعة لمعمل', en: 'Lab payment', icon: 'layers', group: 'labs' },
+  stock_receipt: { ar: 'استلام بضاعة', en: 'Goods received', icon: 'download', group: 'stock' },
+  stock_use: { ar: 'صرف مستهلكات', en: 'Stock used', icon: 'box', group: 'stock' },
+  stock_loss: { ar: 'إعدام مخزون', en: 'Stock written off', icon: 'x', group: 'stock' },
+  stock_count: { ar: 'فروق جرد', en: 'Count differences', icon: 'clipboard', group: 'stock' },
+  supplier_payment: { ar: 'دفعة لمورد', en: 'Supplier payment', icon: 'truck', group: 'stock' },
+  maintenance: { ar: 'صيانة جهاز', en: 'Device maintenance', icon: 'wrench', group: 'stock' },
   manual: { ar: 'قيد يدوي', en: 'Manual entry', icon: 'pen', group: 'manual' },
   reversal: { ar: 'قيد عكسي', en: 'Reversal', icon: 'refresh', group: 'manual' },
 }
@@ -93,6 +99,7 @@ export const GROUPS = {
   money: { ar: 'الخزينة والبنك', en: 'Cash & bank' },
   doctors: { ar: 'الأطباء', en: 'Doctors' },
   labs: { ar: 'المعامل', en: 'Labs' },
+  stock: { ar: 'المخازن والموردون', en: 'Stock & suppliers' },
   manual: { ar: 'يدوية', en: 'Manual' },
 }
 
@@ -115,7 +122,13 @@ const MEMO_AR = [
   [/^Expense (\S+) voided: ([\s\S]*)$/, (m) => `إلغاء المصروف ${m[1]}: ${m[2]}`],
   [/^Settlement of (\d+) (\w+) payments into .+$/, (m) => `تسوية ${m[1]} دفعة (${METHOD_AR[m[2]] || m[2]}) مع البنك`],
   [/^Doctor payout (\S+) for (\S+)$/, (m) => `صرف مستحقات الطبيب ${m[1]} عن ${m[2]}`],
+  [/^Payment to (.+) \(bill (.+)\)$/, (m) => `دفعة إلى ${m[1]} (فاتورة ${m[2]})`],
   [/^Payment to (.+)$/, (m) => `دفعة إلى ${m[1]}`],
+  [/^Goods received from (.+)$/, (m) => `استلام بضاعة من ${m[1]}`],
+  [/^Stock used: ([\s\S]+)$/, (m) => `صرف مستهلكات: ${m[1]}`],
+  [/^Stock written off \(([^)]*)\): ([\s\S]+)$/, (m) => `إعدام مخزون (${m[1]}): ${m[2]}`],
+  [/^Stock count (\S+) differences \((.+)\)$/, (m) => `فروق الجرد ${m[1]} (${m[2]})`],
+  [/^Maintenance \((\w+)\) of (.+?): ([\s\S]*)$/, (m) => `${m[1] === 'repair' ? 'إصلاح' : 'صيانة دورية'} ${m[2]}: ${m[3]}`],
   [/^Reversal of (\S+): ([\s\S]*)$/, (m) => `عكس القيد ${m[1]}: ${m[2]}`],
 ]
 export function memoText(e, lang) {
@@ -192,6 +205,7 @@ export function SourceLink({ entry }) {
   const link = entry.link
   if (!link) return <span className="mrn">{entry.source_ref}</span>
   const billing = can('billing.view') || can('billing.approve')
+  const stock = can('inventory.view')
   const to = {
     invoice: billing && `${dash}/billing/invoices/${link.id}`,
     receipt: billing && `${dash}/billing/receipts/${link.id}/print`,
@@ -199,6 +213,11 @@ export function SourceLink({ entry }) {
     patient: billing && `${dash}/billing/patients/${link.id}`,
     expense: `${base}/expenses?q=${encodeURIComponent(entry.source_ref || '')}`,
     payout: `${base}/payouts/${link.id}`,
+    order: stock && `${dash}/inventory/orders/${link.id}`,
+    supplier: stock && `${dash}/inventory/suppliers/${link.id}`,
+    count: stock && `${dash}/inventory/counts/${link.id}`,
+    device: stock && `${dash}/inventory/devices/${link.id}`,
+    stock_moves: stock && `${dash}/inventory/moves?q=${encodeURIComponent(entry.source_ref || '')}`,
   }[link.kind]
   return to ? <Link to={to} className="mrn">{entry.source_ref}<Icon name="arrowRight" size={12} /></Link> : <span className="mrn">{entry.source_ref}</span>
 }

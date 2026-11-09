@@ -3,6 +3,7 @@ import Icon from '../../../components/Icon'
 import RoleHome from '../../../components/RoleHome'
 import BillingStats from '../../../components/billing/BillingStats'
 import AccountingShortcuts from '../../../components/accounting/Shortcuts'
+import InventoryShortcuts from '../../../components/inventory/Shortcuts'
 import { useI18n } from '../../../i18n/I18nContext'
 
 // Still to come in this workspace (from the project to-do list).
@@ -27,6 +28,7 @@ export default function Home() {
       {(data) => (<>
       <BillingStats data={data} />
       <AccountingShortcuts only={['accounting', 'accounting/payouts', 'accounting/months', 'accounting/reports']} />
+      <InventoryShortcuts only={['inventory', 'inventory/orders', 'inventory/counts', 'inventory/devices']} />
       <section className="card">
         <div className="card-head">
           <div>

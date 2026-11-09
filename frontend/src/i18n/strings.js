@@ -195,6 +195,17 @@ export const strings = {
   'err.too_many_rows': { ar: 'الفترة بها حركات كثيرة جدًا. اختر فترة أقصر.', en: 'Too many movements in this period. Choose a shorter one.' },
   'err.file_not_found': { ar: 'لا يوجد مرفق.', en: 'There is no attachment.' },
   'err.invalid_path': { ar: 'مسار ملف غير صالح.', en: 'Invalid file path.' },
+  // stock, purchasing & devices
+  'err.not_enough_stock': { ar: 'الكمية المتاحة في المخزن لا تكفي.', en: "There isn't enough stock in the store." },
+  'err.order_not_open': { ar: 'أمر الشراء ليس مفتوحًا للاستلام (لم يُعتمد أو اكتمل أو أُلغي).', en: "The purchase order isn't open for receiving (not approved, complete or cancelled)." },
+  'err.order_locked': { ar: 'استُلم جزء من هذا الأمر أو تم البت فيه، فلا يمكن تعديله.', en: "Goods were already received on this order (or it was decided), so it can't be edited." },
+  'err.order_not_pending': { ar: 'هذا الأمر ليس بانتظار الاعتماد.', en: "This order isn't waiting for approval." },
+  'err.count_open': { ar: 'يوجد جرد مفتوح لهذا المخزن بالفعل.', en: 'A count is already open for this store.' },
+  'err.count_not_open': { ar: 'هذا الجرد سُلّم بالفعل.', en: 'This count was already submitted.' },
+  'err.count_incomplete': { ar: 'أدخل الكمية المعدودة لكل الأصناف قبل التسليم.', en: 'Enter the counted quantity for every item before submitting.' },
+  'err.count_not_submitted': { ar: 'هذا الجرد ليس بانتظار الاعتماد.', en: "This count isn't waiting for approval." },
+  'err.device_out_of_service': { ar: 'هذا الجهاز ليس في الخدمة (صيانة أو عطل). اختر جهازًا يعمل.', en: "This device isn't in service (maintenance or fault). Pick a working device." },
+  'err.fault_closed': { ar: 'هذا البلاغ أُغلق بالفعل.', en: 'This fault report is already closed.' },
 
   // field error codes (field-specific keys win: field.<name>.<code>)
   'field.required': { ar: 'هذا الحقل مطلوب.', en: 'This field is required.' },
@@ -274,4 +285,19 @@ export const strings = {
   'field.fee.too_high': { ar: 'العمولة أكبر من المبلغ.', en: 'The fee is more than the amount.' },
   'field.code.taken': { ar: 'رقم الحساب مستخدم بالفعل.', en: 'This account code is already used.' },
   'field.code.pattern': { ar: 'من ٣ إلى ٦ أرقام.', en: '3 to 6 digits.' },
+  // stock, purchasing & devices
+  'field.name_en.taken': { ar: 'الاسم مستخدم بالفعل.', en: 'This name is already used.' },
+  'field.name.taken': { ar: 'الاسم مستخدم بالفعل.', en: 'This name is already used.' },
+  'field.bill_no.taken': { ar: 'رقم فاتورة المورد مسجل من قبل.', en: "This supplier's bill number is already entered." },
+  'field.expired': { ar: 'الصلاحية منتهية: لا تُستلم بضاعة منتهية.', en: 'Expired: expired goods are not received.' },
+  'field.not_enough_stock': { ar: 'أكبر من المتاح.', en: 'More than is available.' },
+  'field.more_than_ordered': { ar: 'أكبر من المتبقي في أمر الشراء.', en: 'More than what is left on the order.' },
+  'field.more_than_bill': { ar: 'أكبر من المتبقي على الفاتورة.', en: 'More than what is open on the bill.' },
+  'field.duplicate': { ar: 'الصنف مكرر.', en: 'This item is listed twice.' },
+  'field.before_order': { ar: 'قبل تاريخ الأمر.', en: 'Before the order date.' },
+  'field.before_purchase': { ar: 'قبل تاريخ الشراء.', en: 'Before the purchase date.' },
+  'field.zero_total': { ar: 'الإجمالي صفر.', en: 'The total is zero.' },
+  'field.count_open': { ar: 'يوجد جرد مفتوح لهذا المخزن.', en: 'A count is already open for this store.' },
+  'field.reason.required': { ar: 'اكتب السبب (٥ أحرف على الأقل).', en: 'Give the reason (at least 5 characters).' },
+  'field.receipt_ids.required': { ar: 'اختر استلامًا واحدًا على الأقل.', en: 'Choose at least one delivery.' },
 }

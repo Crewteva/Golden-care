@@ -20,6 +20,7 @@ import { ShiftReport, ShiftsList } from '../../../components/billing/Shift'
 import { InvoicePrint, ReceiptPrint } from '../../../components/billing/Prints'
 import { PackagesSetup, RulesSetup, SharesSetup } from '../../../components/billing/Setup'
 import { accountingPages } from '../../../components/accounting/routes'
+import { inventoryPages } from '../../../components/inventory/routes'
 
 // Management (owner / general manager): the business side of the clinic.
 export default {
@@ -37,6 +38,7 @@ export default {
     { path: 'billing/receipts/:id/print', nav: false, element: <ReceiptPrint />, permission: 'billing.approve' },
     { path: 'billing/patients/:id', nav: false, element: <PatientAccount />, permission: 'billing.approve' },
     ...accountingPages(['overview', 'payouts', 'months', 'reports']),
+    ...inventoryPages(['overview', 'counts', 'orders', 'devices']),
     { path: 'complaints', icon: 'headphones', label: { ar: 'الشكاوى والطلبات', en: 'Complaints & requests' }, element: <ComplaintsDesk />, permission: 'complaints.manage' },
     { path: 'plans', icon: 'clipboard', label: { ar: 'خطط علاج الأسنان', en: 'Dental plans' }, element: <PlansList />, permission: 'dental.plans_view' },
     { path: 'plans/:id', nav: false, element: <PlanPage />, permission: 'dental.plans_view' },

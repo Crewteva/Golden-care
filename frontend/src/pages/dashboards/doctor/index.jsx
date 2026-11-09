@@ -13,6 +13,7 @@ import PlansList from '../../../components/dental/PlansList'
 import PlanPage from '../../../components/dental/PlanPage'
 import QuotationPrint from '../../../components/dental/Quotation'
 import LabCases from '../../../components/dental/LabCases'
+import { inventoryUsePages } from '../../../components/inventory/routes'
 
 export default {
   role: 'doctor',
@@ -23,6 +24,7 @@ export default {
     { path: 'laser', icon: 'sparkle', label: { ar: 'جلسات الليزر', en: 'Laser sessions' }, element: <LaserToday />, permission: 'laser.record' },
     { path: 'plans', icon: 'clipboard', label: { ar: 'خطط العلاج', en: 'Treatment plans' }, element: <PlansList mine />, permission: 'dental.plans' },
     { path: 'lab-cases', icon: 'package', label: { ar: 'أعمال المعمل', en: 'Lab work' }, element: <LabCases />, permission: 'dental.lab' },
+    ...inventoryUsePages(),
     { path: 'patients', icon: 'users', label: { ar: 'ملفات المرضى', en: 'Patient files' }, element: <PatientDirectory />, permission: 'patients.view' },
     { path: 'review', icon: 'fileSearch', label: { ar: 'بانتظار المراجعة', en: 'Awaiting review' }, element: <ReviewQueue />, permission: 'patient_files.review' },
     { path: 'my-schedule', icon: 'clock', label: { ar: 'جدولي', en: 'My schedule' }, element: <WeekView selfOnly />, permission: 'settings.view' },

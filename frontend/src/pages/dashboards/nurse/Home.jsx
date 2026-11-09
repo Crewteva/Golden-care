@@ -5,7 +5,6 @@ import QuickSearch from '../../../components/patients/QuickSearch'
 // Still to come in this workspace (from the project to-do list).
 const UPCOMING = [
   { icon: 'plusSquare', ar: 'تجهيز المريض', en: "Patient preparation", note: { ar: 'العلامات الحيوية قبل الطبيب', en: "Vitals before the doctor" } },
-  { icon: 'package', ar: 'صرف المستهلكات للجلسات', en: "Consumables for sessions", note: { ar: 'الأقرب انتهاءً أولًا', en: "Nearest expiry first" } },
   { icon: 'sparkle', ar: 'جلسات الليزر', en: "Laser sessions", note: { ar: 'الإعدادات وعدّاد النبضات', en: "Settings and pulse counter" } },
 ]
 

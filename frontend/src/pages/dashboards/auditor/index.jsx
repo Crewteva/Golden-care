@@ -7,6 +7,7 @@ import Refunds from '../../../components/billing/Refunds'
 import { ShiftReport, ShiftsList } from '../../../components/billing/Shift'
 import { InvoicePrint, ReceiptPrint } from '../../../components/billing/Prints'
 import { accountingPages } from '../../../components/accounting/routes'
+import { inventoryPages } from '../../../components/inventory/routes'
 
 export default {
   role: 'auditor',
@@ -14,6 +15,7 @@ export default {
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     { path: 'activity', icon: 'activity', label: { ar: 'سجل النشاط', en: 'Activity log' }, element: <Activity />, permission: 'audit.view' },
     ...accountingPages(['overview', 'journal', 'expenses', 'reports']),
+    ...inventoryPages(['overview', 'moves']),
     { path: 'billing/invoices', icon: 'cash', label: { ar: 'الفواتير', en: 'Invoices' }, element: <InvoicesList />, permission: 'billing.view' },
     { path: 'billing/shifts', icon: 'calculator', label: { ar: 'الورديات والخزينة', en: 'Shifts & cash' }, element: <ShiftsList />, permission: 'billing.view' },
     { path: 'billing/refunds', icon: 'refresh', label: { ar: 'المرتجعات', en: 'Refunds' }, element: <Refunds />, permission: 'billing.view' },

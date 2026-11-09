@@ -9,7 +9,7 @@ import { monthLabel, money, num, useAccounting } from './meta'
 // The books at a glance: money on hand, what's owed both ways, this month and the last six, and what's waiting.
 export default function Overview() {
   const { tx, pick, locale } = useI18n()
-  const { api, base, canPost, canApprove } = useAccounting()
+  const { api, base, dash, can, canPost, canApprove } = useAccounting()
   const { data, error, loading, reload } = useAsync(() => api.overview(), [api])
 
   return (
@@ -55,6 +55,8 @@ export default function Overview() {
             <Owed icon="package" label={tx('باقات مدفوعة لم تُستخدم', 'Prepaid packages not used')} value={data.owed.deferred_packages} foot={tx('إيراد مؤجل', 'Deferred income')} />
             <Owed icon="stethoscope" tone="out" label={tx('مستحقات الأطباء', 'Owed to doctors')} value={data.owed.doctors_payable} to={`${base}/payouts`} foot={tx('كشوف الأطباء', 'Doctor payouts')} />
             <Owed icon="layers" tone="out" label={tx('مستحقات المعامل', 'Owed to labs')} value={data.owed.labs_payable} to={`${base}/payouts?tab=labs`} foot={tx('المعامل', 'Labs')} />
+            {data.owed.suppliers_payable !== undefined && <Owed icon="truck" tone="out" label={tx('مستحقات الموردين', 'Owed to suppliers')} value={data.owed.suppliers_payable} to={can('inventory.view') ? `${dash}/inventory/payables` : undefined} foot={tx('أعمار الديون', 'Aging')} />}
+            {data.owed.inventory !== undefined && <Owed icon="box" tone="in" label={tx('المخزون بالتكلفة', 'Stock at cost')} value={data.owed.inventory} to={can('inventory.view') ? `${dash}/inventory/stock` : undefined} foot={tx('المخزون', 'Stock')} />}
             <Owed icon="fileSearch" tone="out" label={tx('ضريبة القيمة المضافة', 'VAT payable')} value={data.owed.vat_payable} to={`${base}/reports?r=vat`} foot={tx('تقرير الضريبة', 'VAT report')} />
           </section>
 
@@ -79,13 +81,18 @@ export default function Overview() {
             <section className="card" aria-labelledby="recon-h">
               <div className="card-head"><h2 id="recon-h">{tx('مطابقة الدفاتر', 'Books vs. records')}</h2></div>
               <div className="card-body recon">
-                <p className="muted">{tx('رصيد الحساب في الدفتر مقابل مجموع أرصدة المرضى في الفوترة. يجب أن يتطابقا.', "The account's balance in the books against the sum of patient balances in billing. They should match.")}</p>
+                <p className="muted">{tx('رصيد الحساب في الدفتر مقابل السجلات التي يلخّصها (أرصدة المرضى، المخزون، الموردون). يجب أن يتطابقا.', "The account's balance in the books against the records it sums up (patient balances, stock, suppliers). They should match.")}</p>
                 {data.checks.map((c) => {
                   const ok = Math.abs(num(c.ledger) - num(c.records)) < 0.005
                   return (
                     <div key={c.code} className={`recon-row ${ok ? 'ok' : 'bad'}`}>
                       <Icon name={ok ? 'checkCircle' : 'alert'} size={18} />
-                      <span>{c.code === 'receivables' ? tx('مستحق على المرضى', 'Owed by patients') : tx('أرصدة دائنة للمرضى', 'Patient credit')}</span>
+                      <span>{{
+                        receivables: tx('مستحق على المرضى', 'Owed by patients'),
+                        patient_credit: tx('أرصدة دائنة للمرضى', 'Patient credit'),
+                        inventory: tx('المخزون بالتكلفة', 'Stock at cost'),
+                        suppliers_payable: tx('مستحقات الموردين', 'Owed to suppliers'),
+                      }[c.code] || c.code}</span>
                       <span className="num">{money(c.ledger, locale)}</span>
                       <span className="num muted">{ok ? tx('مطابق', 'Matches') : money(c.records, locale)}</span>
                     </div>

@@ -6,12 +6,14 @@ import Refunds from '../../../components/billing/Refunds'
 import { ShiftReport, ShiftsList } from '../../../components/billing/Shift'
 import { InvoicePrint, ReceiptPrint } from '../../../components/billing/Prints'
 import { accountingPages } from '../../../components/accounting/routes'
+import { inventoryPages } from '../../../components/inventory/routes'
 
 export default {
   role: 'accountant',
   pages: [
     { path: '', icon: 'home', label: { ar: 'الرئيسية', en: 'Home' }, element: <Home /> },
     ...accountingPages(),
+    ...inventoryPages(['overview', 'suppliers', 'payables']),
     { path: 'billing/invoices', icon: 'cash', label: { ar: 'الفواتير', en: 'Invoices' }, element: <InvoicesList />, permission: 'billing.view' },
     { path: 'billing/shifts', icon: 'calculator', label: { ar: 'الورديات والخزينة', en: 'Shifts & cash' }, element: <ShiftsList />, permission: 'billing.view' },
     { path: 'billing/refunds', icon: 'refresh', label: { ar: 'المرتجعات', en: 'Refunds' }, element: <Refunds />, permission: 'billing.view' },
